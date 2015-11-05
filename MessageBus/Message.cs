@@ -8,120 +8,93 @@ using System.Threading.Tasks;
 namespace Sensaura.MessageBus
 {
 	/// <summary>
-	/// Represents a single message posted on the MessageBus
+	/// Represents a single message posted on the MessageBus. Once published
+	/// a message is immutable so it is represented as an implementation of
+	/// IReadOnlyDictionary<string, object>
 	/// </summary>
-	public class Message
+	public class Message : IReadOnlyDictionary<string, Object>
 	{
-		/// <summary>
-		/// Helper class to construct messages
-		/// </summary>
-		public class Builder
+		private Dictionary<string, Object> m_payload;
+
+		public Message()
 		{
-			// Message state
-			public Guid? Source { get; set; }
-			public Guid? Target { get; set; }
-			private Dictionary<string, Object> m_payload;
-			private Dictionary<string, Uri> m_attachments;
+		}
 
-			public Builder()
-			{
-				m_payload = new Dictionary<string, object>();
-				m_attachments = new Dictionary<string, Uri>();
-			}
+		public Message(Dictionary<string, Object> payload)
+		{
+			// Create a copy of the dictionary
+			m_payload = new Dictionary<string, object>(payload);
+		}
 
-			/// <summary>
-			/// Clear the current values and prepare for building a new message.
-			/// </summary>
-			public void Clear()
-			{
-				m_payload.Clear();
-				m_attachments.Clear();
-				Source = null;
-				Target = null;
-			}
+		public bool ContainsKey(string key)
+		{
+			if (m_payload == null)
+				return false;
+			return m_payload.ContainsKey(key);
+		}
 
-			/// <summary>
-			/// Populate the values with the contents of an existing message.
-			/// </summary>
-			/// <param name="message"></param>
-			public void Copy(Message message)
+		public IEnumerable<string> Keys
+		{
+			get 
 			{
-				Clear();
-				Source = message.Source;
-				Target = message.Target;
-				foreach (string key in message.Payload.Keys) 
-				{
-					Object value;
-					if (message.Payload.TryGetValue(key, out value))
-						m_payload.Add(key, value);
-				}
-				foreach (string key in message.Attachments.Keys)
-				{
-					Uri value;
-					if (message.Attachments.TryGetValue(key, out value))
-						m_attachments.Add(key, value);
-				}
-			}
-
-			/// <summary>
-			/// Create a message instance with the current values.
-			/// </summary>
-			/// <returns></returns>
-			public Message CreateMessage()
-			{
-				Message message = new Message(
-					Source,
-					Target,
-					new Dictionary<string, object>(m_payload),
-					new Dictionary<string, Uri>(m_attachments)
-					);
-				Clear();
-				return message;
+				if (m_payload == null)
+					return Enumerable.Empty<string>();
+				return m_payload.Keys;
 			}
 		}
 
-		#region Properties
-		private Guid? m_source;
-		public Guid? Source
+		public bool TryGetValue(string key, out object value)
 		{
-			get { return m_source; }
+			if (m_payload == null)
+			{
+				value = null;
+				return false;
+			}
+			return m_payload.TryGetValue(key, out value);
 		}
 
-		private Guid? m_target;
-		public Guid? Target
+		public IEnumerable<object> Values
 		{
-			get { return m_target; }
+			get 
+			{
+				if (m_payload == null)
+					return Enumerable.Empty<object>();
+				return m_payload.Values;
+			}
 		}
 
-		private IReadOnlyDictionary<string, Object> m_payload;
-		public IReadOnlyDictionary<string, Object> Payload
+		public object this[string key]
 		{
-			get { return m_payload; }
+			get 
+			{
+				if (m_payload == null)
+					throw new KeyNotFoundException();
+				return m_payload[key];
+			}
 		}
 
-		private IReadOnlyDictionary<string, Uri> m_attachments;
-		public IReadOnlyDictionary<string, Uri> Attachments
+		public int Count
 		{
-			get { return m_attachments; }
+			get 
+			{
+				if (m_payload == null)
+					return 0;
+				return m_payload.Count;
+			}
 		}
-		#endregion
 
-		/// <summary>
-		/// Constructor
-		/// </summary>
-		/// <param name="source"></param>
-		/// <param name="target"></param>
-		/// <param name="payload"></param>
-		/// <param name="attachments"></param>
-		internal Message(Guid? source, Guid? target, Dictionary<string, Object> payload, Dictionary<string, Uri> attachments)
+		public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
 		{
-			m_source = source;
-			m_target = target;
-			// Make sure we have empty dictionaries, not null
-			payload = (payload == null) ? new Dictionary<string, Object>() : payload;
-			m_payload = new ReadOnlyDictionary<string, Object>(payload);
-			attachments = (attachments == null) ? new Dictionary<string, Uri>() : attachments;
-			m_attachments = new ReadOnlyDictionary<string, Uri>(attachments);
+			if (m_payload == null)
+				return Enumerable.Empty<KeyValuePair<string, object>>().GetEnumerator();
+			return m_payload.GetEnumerator();
+		}
+
+		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+		{
+			if (m_payload == null)
+				return Enumerable.Empty<KeyValuePair<string, object>>().GetEnumerator();
+			return m_payload.GetEnumerator();
 		}
 	}
 }
