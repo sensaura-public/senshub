@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseDictionary.cs" />
+    <Compile Include="Enumeration.cs" />
     <Compile Include="IJsonSerialisable.cs" />
     <Compile Include="JSonDeserialiser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

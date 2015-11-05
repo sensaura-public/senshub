@@ -8,7 +8,7 @@ using Sensaura.MessageBus;
 
 namespace Sensaura.Configuration
 {
-	public class Configuration : Dictionary<string, string>, IJsonSerialisable
+	public class Configuration : BaseDictionary<string, string>, IJsonSerialisable
 	{
 		private static MessageBuilder s_builder = new MessageBuilder();
 
@@ -21,27 +21,33 @@ namespace Sensaura.Configuration
 			get { return "Configuration"; }
 		}
 
-		public Configuration(string name)
+		public Configuration(string name) : base()
 		{
+			// Set up state
 			m_name = name;
 			m_dirty = false;
 			m_topic = MessageBus.MessageBus.Private.CreateTopic(String.Format("configuration/{0}", name));
+			// Handle changes
+			this.ValueChanged += OnValueChanged;
+			this.ValueRemoved += OnValueRemoved;
 		}
 
-		public string Serialise()
+		void OnValueRemoved(IDictionary<string, string> container, string key)
 		{
-			throw new NotImplementedException();
-		}
-
-		public override void Add(string key, string value) 
-		{
-			base.Add(key, value);
 			m_dirty = true;
-			lock (s_builder)
-			{
-				s_builder.Add(key, value);
-				m_topic.Publish(s_builder.CreateMessage());
-			}
+			// TODO: Publish a message indicating the change
 		}
+
+		void OnValueChanged(IDictionary<string, string> container, string key, string value)
+		{
+			m_dirty = true;
+			// TODO: Publish a message indicating the change
+		}
+
+		public IReadOnlyDictionary<string, object> Pack()
+		{
+			return (IReadOnlyDictionary<string, object>)this;
+		}
+
 	}
 }
