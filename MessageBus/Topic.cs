@@ -22,9 +22,10 @@ namespace Sensaura.MessageBus
 		public event MessageReceivedHandler MessageReceived;
 
 		//--- Instance variables
-		private Topic m_parent;  // Parent topic
-		private string m_name;   // Name of this topic
-		private string m_fqname; // Fully qualified name
+		private Topic                     m_parent;   // Parent topic
+		private string                    m_name;     // Name of this topic
+		private string                    m_fqname;   // Fully qualified name
+		private Dictionary<string, Topic> m_children; // Child nodes
 
 		/// <summary>
 		/// Default constructor. Declared private so it cannot be invoked.
@@ -41,6 +42,7 @@ namespace Sensaura.MessageBus
 		/// <param name="name"></param>
 		internal Topic(Topic parent, string name)
 		{
+			m_children = new Dictionary<string, Topic>();
 			m_parent = parent;
 			m_name = name;
 		}
@@ -69,7 +71,7 @@ namespace Sensaura.MessageBus
 			// Create all the children
 			Topic child = this;
 			foreach (string part in parts)
-				child = new Topic(child, part);
+				child = child.CreateDirectChild(part);
 			// Return the final leaf
 			return child;
 		}
@@ -104,6 +106,26 @@ namespace Sensaura.MessageBus
 		#endregion
 
 		#region Internal Helpers
+		/// <summary>
+		/// Create (or retrieve) a direct child of this node by name
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		protected Topic CreateDirectChild(string name)
+		{
+			Topic child;
+			lock (m_children)
+			{
+				if (!m_children.TryGetValue(name, out child))
+				{
+					// Create the new child
+					child = new Topic(this, name);
+					m_children.Add(name, child);
+				}
+			}
+			return child;
+		}
+
 		/// <summary>
 		/// Fire the message received events. These messages are dispatched
 		/// asynchronously so the publisher is not blocked.
