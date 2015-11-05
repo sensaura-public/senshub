@@ -10,6 +10,6 @@ namespace Sensaura.Utilities
 	{
 		string SerialisationTypeID { get; }
 
-		string Serialise();
+		IReadOnlyDictionary<string, object> Pack();
 	}
 }

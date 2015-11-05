@@ -21,15 +21,15 @@ namespace Sensaura.Utilities
 			}
 		}
 
-		public abstract IJsonSerialisable Deserialise(string json);
+		public abstract IJsonSerialisable Deserialise(IReadOnlyDictionary<string, object> packed);
 
-		public static IJsonSerialisable Deserialise(string typeID, string json)
+		public static IJsonSerialisable Deserialise(string typeID, IReadOnlyDictionary<string, object> packed)
 		{
 			lock (m_typemap)
 			{
 				if (!m_typemap.ContainsKey(typeID))
 					return null;
-				return m_typemap[typeID].Deserialise(json);
+				return m_typemap[typeID].Deserialise(packed);
 			}
 		}
 	}
