@@ -21,6 +21,24 @@ namespace Sensaura.MessageBus
 		}
 
 		/// <summary>
+		/// The root of the private topic tree. Messages in this tree should
+		/// never leave the server.
+		/// </summary>
+		public static Topic Private
+		{
+			get { return m_instance.CreateTopic("private"); }
+		}
+
+		/// <summary>
+		/// The root of the public topic tree. Messages in this tree may be
+		/// sent outside the server.
+		/// </summary>
+		public static Topic Public
+		{
+			get { return m_instance.CreateTopic("public");  }
+		}
+
+		/// <summary>
 		/// Static initialisation
 		/// </summary>
 		static MessageBus()
