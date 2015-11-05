@@ -37,6 +37,8 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IJsonSerialisable.cs" />
+    <Compile Include="JSonDeserialiser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FileSystem.cs" />
   </ItemGroup>
