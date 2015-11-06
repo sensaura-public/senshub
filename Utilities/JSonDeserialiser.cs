@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Sensaura.Utilities
 {
@@ -36,22 +37,37 @@ namespace Sensaura.Utilities
 
 		public static IJsonSerialisable Deserialise(string typeID, string json)
 		{
-			throw new NotImplementedException();
+			// Convert the JSON string into a Dictionary (JObject)
+			Dictionary<string, object> packed = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+			return Deserialise(typeID, packed);
 		}
 
 		public static IJsonSerialisable Deserialise(string json)
 		{
-			throw new NotImplementedException();
+			// Convert the JSON string into a Dictionary (JObject)
+			Dictionary<string, object> packed = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+			if (!packed.ContainsKey("type") || !packed.ContainsKey("data"))
+				return null;
+			Dictionary<string, object> data = packed["data"] as Dictionary<string, object>;
+			if (data == null)
+				return null;
+			return Deserialise(packed["type"].ToString(), data);
 		}
 
 		public static IJsonSerialisable Deserialise(string typeID, Stream json)
 		{
-			throw new NotImplementedException();
+			// Read the sensor description from the JSON file
+			TextReader reader = new StreamReader(json);
+			string text = reader.ReadToEnd();
+			return Deserialise(typeID, text);
 		}
 
 		public static IJsonSerialisable Deserialise(Stream json)
 		{
-			throw new NotImplementedException();
+			// Read the sensor description from the JSON file
+			TextReader reader = new StreamReader(json);
+			string text = reader.ReadToEnd();
+			return Deserialise(text);
 		}
 	}
 }
