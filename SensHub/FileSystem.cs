@@ -8,8 +8,14 @@ using Sensaura.Utilities;
 
 namespace Sensaura.Hub
 {
+	/// <summary>
+	/// Implements IFolder which allows for creation of and access to files.
+	/// </summary>
 	internal class FolderImpl : IFolder
 	{
+		/// <summary>
+		/// The path this folder is attached to.
+		/// </summary>
 		private string m_path;
 
 		internal FolderImpl(string path)
@@ -17,14 +23,54 @@ namespace Sensaura.Hub
 			m_path = path;
 		}
 
+		/// <summary>
+		/// Create (or open) a new file in the folder.
+		/// </summary>
+		/// <param name="name">
+		/// The name of the file to open or create. The file name must not contain path
+		/// separators.
+		/// </param>
+		/// <param name="access">
+		/// The access mode to open the file with.
+		/// </param>
+		/// <param name="options">
+		/// Creation options.
+		/// </param>
+		/// <returns>A Stream instance to read or write to the file.</returns>
 		public Stream CreateFile(string name, Sensaura.Utilities.FileAccess access, CreationOptions options)
 		{
-			throw new NotImplementedException();
+			bool exists = FileExists(name);
+			string target = Path.Combine(m_path, name);
+			switch (options)
+			{
+				case CreationOptions.FailIfExists:
+					if (exists)
+						throw new InvalidOperationException(String.Format("File '{0}' exists and {1} was specified.", target, options));
+					break;
+				case CreationOptions.OpenIfExists:
+					break;
+				case CreationOptions.ReplaceExisting:
+					if (exists)
+						File.Delete(target);
+					break;
+			}
+			// Now open the stream
+			return File.Open(target, FileMode.OpenOrCreate, (access == Sensaura.Utilities.FileAccess.Read) ? System.IO.FileAccess.Read : System.IO.FileAccess.ReadWrite, FileShare.None);
 		}
 
+		/// <summary>
+		/// Test if the given file exists in the folder.
+		/// </summary>
+		/// <param name="name">
+		/// The name of the file to open or create. The file name must not contain path
+		/// separators.
+		/// </param>
+		/// <returns>True if the file exists.</returns>
 		public bool FileExists(string name)
 		{
-			throw new NotImplementedException();
+			if (Path.GetFileName(name) != name)
+				throw new ArgumentException(String.Format("'{0} is not a valid file name", name));
+			return File.Exists(Path.Combine(m_path, name));
 		}
 	}
 
