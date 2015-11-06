@@ -7,8 +7,8 @@
     <ProjectGuid>{2DC7FB75-9834-4BEE-814E-7A3C55E1FA25}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SensHub</RootNamespace>
-    <AssemblyName>SensHub</AssemblyName>
+    <RootNamespace>Sensaura.Hub</RootNamespace>
+    <AssemblyName>Sensaura.Hub</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -54,6 +54,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Configuration\Configuration.csproj">
+      <Project>{cbfd18db-6e7e-4f3f-b5c9-d957100adf61}</Project>
+      <Name>Configuration</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MessageBus\MessageBus.csproj">
       <Project>{383bb8c3-6c26-4b63-98ab-efe68f7d41bf}</Project>
       <Name>MessageBus</Name>

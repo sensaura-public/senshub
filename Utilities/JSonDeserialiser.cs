@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -31,6 +32,26 @@ namespace Sensaura.Utilities
 					return null;
 				return m_typemap[typeID].Deserialise(packed);
 			}
+		}
+
+		public static IJsonSerialisable Deserialise(string typeID, string json)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static IJsonSerialisable Deserialise(string json)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static IJsonSerialisable Deserialise(string typeID, Stream json)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static IJsonSerialisable Deserialise(Stream json)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

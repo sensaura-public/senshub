@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Sensaura.Utilities;
 
-namespace SensHub
+namespace Sensaura.Hub
 {
 	internal class FolderImpl : IFolder
 	{
@@ -44,6 +44,7 @@ namespace SensHub
 			// Save state
 			m_basePath = basePath;
 			m_custom = new Dictionary<string, string>();
+			m_folders = new Dictionary<string, IFolder>();
 		}
 
 		/// <summary>
