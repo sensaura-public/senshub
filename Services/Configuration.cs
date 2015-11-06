@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Sensaura.Utilities;
-using Sensaura.MessageBus;
 using Splat;
 
-namespace Sensaura.Configuration
+namespace Sensaura.Services
 {
 	public class Configuration : BaseDictionary<string, string>, IJsonSerialisable
 	{
@@ -31,7 +30,7 @@ namespace Sensaura.Configuration
 			// Set up state
 			m_name = name;
 			m_dirty = false;
-			m_topic = MessageBus.MessageBus.Private.CreateTopic(String.Format("configuration/{0}", name));
+			m_topic = MessageBus.Private.CreateTopic(String.Format("configuration/{0}", name));
 			// Handle changes
 			this.ValueChanged += OnValueChanged;
 			this.ValueRemoved += OnValueRemoved;

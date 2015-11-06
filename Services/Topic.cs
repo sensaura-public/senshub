@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Sensaura.Utilities;
 
-namespace Sensaura.MessageBus
+namespace Sensaura.Services
 {
 	/// <summary>
 	/// Topics are used to group messages. A topic may only be created as a

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sensaura.MessageBus
+namespace Sensaura.Services
 {
 	/// <summary>
 	/// Represents a single message posted on the MessageBus. Once published

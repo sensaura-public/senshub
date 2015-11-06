@@ -54,13 +54,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Configuration\Configuration.csproj">
-      <Project>{cbfd18db-6e7e-4f3f-b5c9-d957100adf61}</Project>
-      <Name>Configuration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MessageBus\MessageBus.csproj">
-      <Project>{383bb8c3-6c26-4b63-98ab-efe68f7d41bf}</Project>
-      <Name>MessageBus</Name>
+    <ProjectReference Include="..\Services\Services.csproj">
+      <Project>{1b4a644c-7ef7-49c7-a3cc-7e821fe18874}</Project>
+      <Name>Services</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
       <Project>{e9c15121-dca3-4ebc-877e-513fcb335723}</Project>
