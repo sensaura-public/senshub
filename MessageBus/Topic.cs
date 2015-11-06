@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Sensaura.Utilities;
 
 namespace Sensaura.MessageBus
 {
@@ -14,7 +15,6 @@ namespace Sensaura.MessageBus
 	/// </summary>
 	public class Topic
 	{
-		private static readonly Regex  TOPIC_REGEX     = new Regex(@"^[a-zA-Z0-9\-_]+$");
 		private static readonly char[] TOPIC_SEPARATOR = { '/' };
 
 		//--- Events
@@ -65,7 +65,7 @@ namespace Sensaura.MessageBus
 			{
 				if (part.Length == 0)
 					throw new ArgumentException("Topic contains an empty child name.");
-				if (!TOPIC_REGEX.IsMatch(part))
+				if (!part.IsValidIdentifier())
 					throw new ArgumentException("Topic contains a child name with illegal characters.");
 			}
 			// Create all the children
