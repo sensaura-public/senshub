@@ -9,21 +9,14 @@ using Splat;
 
 namespace Sensaura.Services
 {
-	public class Configuration : BaseDictionary<string, string>, IJsonSerialisable
+	public class Configuration : BaseDictionary<string, string>, IPackable
 	{
-		private const string SERIALISATION_ID = "Configuration";
-
 		private static MessageBuilder s_builder = new MessageBuilder();
 		private static Dictionary<string, Configuration> s_configs = new Dictionary<string, Configuration>();
 
 		private string m_name;
 		private bool m_dirty;
 		private Topic m_topic;
-
-		public string SerialisationTypeID
-		{
-			get { return SERIALISATION_ID; }
-		}
 
 		private Configuration(string name) : base()
 		{
@@ -53,6 +46,16 @@ namespace Sensaura.Services
 			return (IReadOnlyDictionary<string, object>)this;
 		}
 
+		private static string GetBackingFileName(string name)
+		{
+			return String.Format("{0}.json", name);
+		}
+
+		public void Save()
+		{
+
+		}
+
 		public static Configuration Open(string name)
 		{
 			lock (s_configs)
@@ -64,14 +67,18 @@ namespace Sensaura.Services
 						throw new ArgumentException("Invalid configuration name.");
 					IFileSystem fs = Locator.Current.GetService<IFileSystem>();
 					IFolder folder = fs.OpenFolder("config");
-					Stream input = folder.CreateFile(
-						String.Format("{0}.json", name),
-						FileAccess.Read,
-						CreationOptions.OpenIfExists
-						);
+					string filename = GetBackingFileName(name);
 					Configuration config = null;
-					if (input!=null)
-						config = JSonDeserialiser.Deserialise(SERIALISATION_ID, input) as Configuration;
+					if (folder.FileExists(filename))
+					{
+						Stream input = folder.CreateFile(
+							String.Format("{0}.json", name),
+							FileAccess.Read,
+							CreationOptions.OpenIfExists
+							);
+						if (input != null)
+							config = ObjectPacker.Unpack<Configuration>(input);
+					}
 					if (config == null)
 						config = new Configuration(name);
 					s_configs[name] = config;
