@@ -74,27 +74,14 @@ namespace Sensaura.Utilities
 	public interface IFileSystem
 	{
 		/// <summary>
-		/// Create or open a new folder in the storage area.
+		/// Open a folder in the storage area.
 		/// </summary>
 		/// <param name="name">
-		/// The name of the folder to open or create. The name must not contain path
+		/// The name of the folder to open. The name must not contain path
 		/// separators.
-		/// </param>
-		/// <param name="options">
-		/// Creation options
 		/// </param>
 		/// <returns>An IFolder instance representing the folder.</returns>
-		IFolder CreateFolder(string name, CreationOptions options);
-
-		/// <summary>
-		/// Determine if the named folder exists.
-		/// </summary>
-		/// <param name="name">
-		/// The name of the folder to open or create. The name must not contain path
-		/// separators.
-		/// </param>
-		/// <returns>True if the folder exists.</returns>
-		bool FolderExists(string name);
+		IFolder OpenFolder(string name);
 	}
 
 }
