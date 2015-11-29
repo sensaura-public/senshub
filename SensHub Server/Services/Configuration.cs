@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using SensHub.Plugins.Utilities;
 using Splat;
 
-namespace Sensaura.Services
+namespace SensHub.Server.Services
 {
 	public class Configuration : BaseDictionary<string, string>, IPackable
 	{

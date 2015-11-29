@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Plugins.Utilities;
 
-namespace Sensaura.Services
+namespace SensHub.Server.Services
 {
 	/// <summary>
 	/// Topics are used to group messages. A topic may only be created as a

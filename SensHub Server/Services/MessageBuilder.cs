@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sensaura.Services
+namespace SensHub.Server.Services
 {
 	public class MessageBuilder
 	{

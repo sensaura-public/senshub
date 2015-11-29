@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins.Utilities;
-using Sensaura.Services;
+using SensHub.Server.Services;
 using Splat;
 
-namespace Sensaura.Hub
+namespace SensHub.Server
 {
 	class Program
 	{

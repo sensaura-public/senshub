@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Plugins.Utilities;
 
-namespace Sensaura.Hub
+namespace SensHub.Server
 {
 	/// <summary>
 	/// Implements IFolder which allows for creation of and access to files.

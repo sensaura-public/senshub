@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Splat;
 
-namespace Sensaura.Services
+namespace SensHub.Server.Services
 {
 	public class MessageBus : Topic, IEnableLogger
 	{
