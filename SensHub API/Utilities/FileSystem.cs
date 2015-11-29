@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Sensaura.Utilities
+namespace SensHub.Plugins.Utilities
 {
 	/// <summary>
 	/// File access mode

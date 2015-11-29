@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Sensaura.Utilities
+namespace SensHub.Plugins.Utilities
 {
 	public static class Extensions
 	{

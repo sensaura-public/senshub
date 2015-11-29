@@ -4,10 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Splat;
 
-namespace Sensaura.Utilities
+namespace SensHub.Plugins.Utilities
 {
 	/// <summary>
 	/// This interface must be implemented by classes that can be packed
@@ -62,7 +61,7 @@ namespace Sensaura.Utilities
 		public static T Unpack<T>(string json) where T : IPackable
 		{
 			// Convert the JSON string into a Dictionary (JObject)
-			Dictionary<string, object> packed = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+			Dictionary<string, object> packed = new Dictionary<string, object>();
 			return (T)Unpack(typeof(T), packed);
 		}
 
@@ -74,7 +73,7 @@ namespace Sensaura.Utilities
 		public static IPackable Unpack(string json)
 		{
 			// Convert the JSON string into a Dictionary (JObject)
-			Dictionary<string, object> packed = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
+			Dictionary<string, object> packed = new Dictionary<string, object>();
 			if (!packed.ContainsKey("type") || !packed.ContainsKey("data"))
 				return null;
 			// Convert the type name to a Type instance
@@ -101,7 +100,7 @@ namespace Sensaura.Utilities
 			TextReader reader = new StreamReader(json);
 			string text = reader.ReadToEnd();
 			// Convert the JSON string into a Dictionary (JObject)
-			Dictionary<string, object> packed = JsonConvert.DeserializeObject<Dictionary<string, object>>(text);
+			Dictionary<string, object> packed = new Dictionary<string, object>();
 			return (T)Unpack(typeof(T), packed);
 		}
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Sensaura.Utilities;
+using SensHub.Plugins.Utilities;
 using Splat;
 
 namespace Sensaura.Services
@@ -73,7 +73,7 @@ namespace Sensaura.Services
 					{
 						Stream input = folder.CreateFile(
 							String.Format("{0}.json", name),
-							FileAccess.Read,
+                            SensHub.Plugins.Utilities.FileAccess.Read,
 							CreationOptions.OpenIfExists
 							);
 						if (input != null)

@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Sensaura.Utilities;
+using SensHub.Plugins;
+using SensHub.Plugins.Utilities;
 
 namespace Sensaura.Hub
 {
@@ -37,7 +38,7 @@ namespace Sensaura.Hub
 		/// Creation options.
 		/// </param>
 		/// <returns>A Stream instance to read or write to the file.</returns>
-		public Stream CreateFile(string name, Sensaura.Utilities.FileAccess access, CreationOptions options)
+		public Stream CreateFile(string name, SensHub.Plugins.Utilities.FileAccess access, CreationOptions options)
 		{
 			bool exists = FileExists(name);
 			string target = Path.Combine(m_path, name);
@@ -55,7 +56,7 @@ namespace Sensaura.Hub
 					break;
 			}
 			// Now open the stream
-			return File.Open(target, FileMode.OpenOrCreate, (access == Sensaura.Utilities.FileAccess.Read) ? System.IO.FileAccess.Read : System.IO.FileAccess.ReadWrite, FileShare.None);
+			return File.Open(target, FileMode.OpenOrCreate, (access == SensHub.Plugins.Utilities.FileAccess.Read) ? System.IO.FileAccess.Read : System.IO.FileAccess.ReadWrite, FileShare.None);
 		}
 
 		/// <summary>

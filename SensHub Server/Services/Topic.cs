@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Sensaura.Utilities;
+using SensHub.Plugins;
+using SensHub.Plugins.Utilities;
 
 namespace Sensaura.Services
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sensaura.Utilities
+namespace SensHub.Plugins.Utilities
 {
 	public class Enumeration
 	{
