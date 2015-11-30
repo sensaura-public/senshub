@@ -16,21 +16,15 @@ namespace SensHub.Server
 		{
 			// TODO: Parse command line to get paths
 			// Register the singletons
+			Locator.CurrentMutable.RegisterConstant(new Logger(), typeof(ILogger));
 			Locator.CurrentMutable.RegisterConstant(new FileSystem(@"C:\\Shane\\Scratch\\senshub"), typeof(IFileSystem));
 			// Get the system configuration
 			Configuration config = Configuration.Open("system");
 
-			// SWG: TESTING
-			MessageBus bus = MessageBus.Instance;
-			bus.MessageReceived += bus_MessageReceived;
-			Topic child = bus.CreateTopic("this/isa/topic");
-			child.MessageReceived += bus_MessageReceived;
-			System.Console.WriteLine("Topic = '{0}'", child.ToString());
-			// Send a message
-			MessageBuilder builder = new MessageBuilder();
-			Message message = builder.CreateMessage();
-			child.Publish(message);
-			Thread.Sleep(5000);
+			// Initialise the plugins (internal and user provided)
+			PluginManager plugins = new PluginManager();
+			plugins.LoadPlugins(@"C:\\Shane\\Scratch\\senshub\\plugins");
+			plugins.InitialisePlugins();
 		}
 
 		static void bus_MessageReceived(Topic topic, Message message)
