@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SensHub.Plugins;
 using SensHub.Plugins.Utilities;
 using Splat;
 
@@ -65,7 +66,7 @@ namespace SensHub.Server.Services
 					// Create a new configuration
 					if (!name.IsValidIdentifier())
 						throw new ArgumentException("Invalid configuration name.");
-					IFileSystem fs = Locator.Current.GetService<IFileSystem>();
+					FileSystem fs = Locator.Current.GetService<FileSystem>();
 					IFolder folder = fs.OpenFolder("config");
 					string filename = GetBackingFileName(name);
 					Configuration config = null;
@@ -73,7 +74,7 @@ namespace SensHub.Server.Services
 					{
 						Stream input = folder.CreateFile(
 							String.Format("{0}.json", name),
-                            SensHub.Plugins.Utilities.FileAccess.Read,
+                            FileAccessMode.Read,
 							CreationOptions.OpenIfExists
 							);
 						if (input != null)

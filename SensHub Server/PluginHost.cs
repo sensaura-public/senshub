@@ -20,6 +20,7 @@ namespace SensHub.Server
 	{
 		
 		private IPlugin m_plugin;
+		private IFolder m_data;
 
 		public PluginHost(IPlugin plugin)
 		{
@@ -38,6 +39,11 @@ namespace SensHub.Server
 			get { return CultureInfo.CurrentCulture; }
 		}
 
+		public IFolder FileSystem
+		{
+			get { return m_data; }
+		}
+
 		#endregion
 
 		#region Custom Operations
@@ -45,6 +51,18 @@ namespace SensHub.Server
 		public bool EnablePlugin()
 		{
 			bool initialised = false;
+			// Set up the data directory for the plugin
+			FileSystem fs = Locator.Current.GetService<FileSystem>();
+			fs = fs.OpenFolder("data") as FileSystem;
+			try
+			{
+				m_data = fs.OpenFolder(m_plugin.UUID.ToString());
+			}
+			catch (Exception ex)
+			{
+				this.Log().Error("Unable to create data directory for plugin {0}", m_plugin.UUID.ToString());
+				return false;
+			}
 			try
 			{
 				initialised = m_plugin.Initialise(this);
@@ -60,5 +78,6 @@ namespace SensHub.Server
 			return initialised;
 		}
 		#endregion
+
 	}
 }

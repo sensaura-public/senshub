@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 
-namespace SensHub.Plugins.Utilities
+namespace SensHub.Plugins
 {
 	/// <summary>
 	/// File access mode
 	/// </summary>
-	public enum FileAccess {
+	public enum FileAccessMode {
 		/// <summary>
 		/// Open an existing file for read only access.
 		/// </summary>
@@ -42,6 +42,18 @@ namespace SensHub.Plugins.Utilities
 	public interface IFolder
 	{
 		/// <summary>
+		/// Open a folder in the storage area.
+		/// 
+		/// The folder will be created if it does not exist.
+		/// </summary>
+		/// <param name="name">
+		/// The name of the folder to open. The name must not contain path
+		/// separators.
+		/// </param>
+		/// <returns>An IFolder instance representing the folder.</returns>
+		IFolder OpenFolder(string name);
+
+		/// <summary>
 		/// Create (or open) a new file in the folder.
 		/// </summary>
 		/// <param name="name">
@@ -55,7 +67,7 @@ namespace SensHub.Plugins.Utilities
 		/// Creation options.
 		/// </param>
 		/// <returns>A Stream instance to read or write to the file.</returns>
-		Stream CreateFile(string name, FileAccess access, CreationOptions options);
+		Stream CreateFile(string name, FileAccessMode access, CreationOptions options);
 
 		/// <summary>
 		/// Test if the given file exists in the folder.
@@ -66,22 +78,6 @@ namespace SensHub.Plugins.Utilities
 		/// </param>
 		/// <returns>True if the file exists.</returns>
 		bool FileExists(string name);
-	}
-
-	/// <summary>
-	/// Represents the application storage area.
-	/// </summary>
-	public interface IFileSystem
-	{
-		/// <summary>
-		/// Open a folder in the storage area.
-		/// </summary>
-		/// <param name="name">
-		/// The name of the folder to open. The name must not contain path
-		/// separators.
-		/// </param>
-		/// <returns>An IFolder instance representing the folder.</returns>
-		IFolder OpenFolder(string name);
 	}
 
 }

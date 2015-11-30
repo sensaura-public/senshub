@@ -27,5 +27,14 @@ namespace SensHub.Plugins
 		/// while they are running.
 		/// </summary>
 		CultureInfo Culture { get; }
+
+		/// <summary>
+		/// Provide access to the plugins storage space.
+		/// 
+		/// Plugins can read and write arbitrary files inside their
+		/// own data directory. This property provides a <see cref="IFolder"/>
+		/// instance that enforces that.
+		/// </summary>
+		IFolder FileSystem { get; }
     }
 }

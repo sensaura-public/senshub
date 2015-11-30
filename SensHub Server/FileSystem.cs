@@ -6,22 +6,39 @@ using System.Text;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Plugins.Utilities;
+using Splat;
 
 namespace SensHub.Server
 {
 	/// <summary>
 	/// Implements IFolder which allows for creation of and access to files.
 	/// </summary>
-	internal class FolderImpl : IFolder
+	internal class FileSystem : IFolder, IEnableLogger
 	{
-		/// <summary>
-		/// The path this folder is attached to.
-		/// </summary>
+		// Base path and custom locations
 		private string m_path;
+		private Dictionary<string, IFolder> m_folders;
 
-		internal FolderImpl(string path)
+		/// <summary>
+		/// Allow access to the full path this folder represents
+		/// </summary>
+		public String BasePath
 		{
+			get { return m_path; }
+		}
+
+		/// <summary>
+		/// Constructor with a base path
+		/// </summary>
+		/// <param name="path"></param>
+		internal FileSystem(string path)
+		{
+			// Make sure the base path exists and is a directory
+			if (!Directory.Exists(path))
+				Directory.CreateDirectory(path);
+			// Save state
 			m_path = path;
+			m_folders = new Dictionary<string, IFolder>();
 		}
 
 		/// <summary>
@@ -38,7 +55,7 @@ namespace SensHub.Server
 		/// Creation options.
 		/// </param>
 		/// <returns>A Stream instance to read or write to the file.</returns>
-		public Stream CreateFile(string name, SensHub.Plugins.Utilities.FileAccess access, CreationOptions options)
+		public Stream CreateFile(string name, FileAccessMode access, CreationOptions options)
 		{
 			bool exists = FileExists(name);
 			string target = Path.Combine(m_path, name);
@@ -56,7 +73,7 @@ namespace SensHub.Server
 					break;
 			}
 			// Now open the stream
-			return File.Open(target, FileMode.OpenOrCreate, (access == SensHub.Plugins.Utilities.FileAccess.Read) ? System.IO.FileAccess.Read : System.IO.FileAccess.ReadWrite, FileShare.None);
+			return File.Open(target, FileMode.OpenOrCreate, (access == FileAccessMode.Read) ? FileAccess.Read : FileAccess.ReadWrite, FileShare.None);
 		}
 
 		/// <summary>
@@ -73,76 +90,29 @@ namespace SensHub.Server
 				throw new ArgumentException(String.Format("'{0} is not a valid file name", name));
 			return File.Exists(Path.Combine(m_path, name));
 		}
-	}
 
-
-	public class FileSystem : IFileSystem
-	{
-		// Base path and custom locations
-		private string m_basePath;
-		private Dictionary<string, string> m_custom;
-		private Dictionary<string, IFolder> m_folders;
-
-		public FileSystem(string basePath)
-		{
-			// Make sure the base path exists and is a directory
-			if (!Directory.Exists(basePath))
-				Directory.CreateDirectory(basePath);
-			// Save state
-			m_basePath = basePath;
-			m_custom = new Dictionary<string, string>();
-			m_folders = new Dictionary<string, IFolder>();
-		}
-
-		/// <summary>
-		/// Map a physical path to a subdirectory in the virtual file system.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="path"></param>
-		public void SetPath(string name, string path)
-		{
-			// Check parameters
-			if (!name.IsValidIdentifier())
-				throw new ArgumentException("Invalid directory name");
-			// Make sure the target mapping exists
-			if (!Directory.Exists(path))
-				Directory.CreateDirectory(path);
-			// Add it to the list
-			m_custom.Add(name, path);
-		}
-
-		/// <summary>
-		/// Get a system path from the child path name. If a mapping has
-		/// been registered that location will be used, otherwise the child
-		/// directory will be created under the base path location.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
-		public string GetPath(string name)
-		{
-			// Check parameters
-			if (!name.IsValidIdentifier())
-				throw new ArgumentException("Invalid directory name");
-			// Do we have a custom mapping ?
-			if (m_custom.ContainsKey(name))
-				return m_custom[name];
-			// Generate from base path
-			string target = Path.Combine(m_basePath, name);
-			Directory.CreateDirectory(target);
-			return target;
-		}
-
-		/// <summary>
-		/// Open a folder in the virtual storage area
-		/// </summary>
-		/// <param name="name"></param>
-		/// <returns></returns>
 		public IFolder OpenFolder(string name)
 		{
-			// Create a new IFolder if we don't have one
-			if (!m_folders.ContainsKey(name))
-				m_folders[name] = new FolderImpl(GetPath(name));
-			return m_folders[name];
+			lock (m_folders)
+			{
+				// Do we already have a reference to this folder?
+				if (!m_folders.ContainsKey(name))
+				{
+					// Try and create the folder instance
+					try
+					{
+						FileSystem folder = new FileSystem(Path.Combine(m_path, name));
+						m_folders[name] = folder;
+					}
+					catch (Exception ex)
+					{
+						this.Log().Warn("Cannot create folder '{0}' in '{1}'", name, m_path);
+						return null;
+					}
+				}
+				return m_folders[name];
+			}
 		}
 	}
+
 }
