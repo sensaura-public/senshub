@@ -1,11 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Dynamic;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
+using Json;
 
 namespace SensHub.Server
 {
@@ -90,6 +90,11 @@ namespace SensHub.Server
 			}
 		}
 
+        /// <summary>
+        /// Name of the key used to store the object type
+        /// </summary>
+        private const string TypeKey = "_type";
+
 		/// <summary>
 		/// Static initialisation
 		/// </summary>
@@ -105,8 +110,46 @@ namespace SensHub.Server
 		/// <returns></returns>
 		public static string Pack(IPackable packable, bool storeTypeInformation = false)
 		{
-			return null;
+            IReadOnlyDictionary<string, object> values = packable.Pack();
+            // Annoyingly we need to convert to a IDictionary
+            Dictionary<string, object> mutable = new Dictionary<string, object>();
+            foreach (KeyValuePair<string, object> pair in values)
+                mutable.Add(pair.Key, pair.Value);
+            if (storeTypeInformation)
+                mutable.Add(TypeKey, packable.GetType().AssemblyQualifiedName);
+            return JsonParser.ToJson(mutable);
 		}
+
+        /// <summary>
+        /// Unpack a JSON string into a 'raw' dictionary format.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static Dictionary<string, object> UnpackRaw(string json)
+        {
+            IDictionary<string, object> result;
+            try
+            {
+                return (Dictionary<string, object>)JsonParser.FromJson(json);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Unpack a JSON file into a 'raw' dictionary format.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static Dictionary<string, object> UnpackRaw(Stream jsonFile)
+        {
+            StreamReader reader = new StreamReader(jsonFile);
+            Dictionary<string, object> result = UnpackRaw(reader.ReadToEnd());
+            jsonFile.Close();
+            return result;
+        }
 
 		/// <summary>
 		/// Unpack an object from JSON format.
@@ -115,18 +158,95 @@ namespace SensHub.Server
 		/// <returns></returns>
 		public static IPackable Unpack(string json)
 		{
-			return null;
-		}
+            IReadOnlyDictionary<string, object> values = UnpackRaw(json);
+            if (values == null)
+                return null;
+            // Do we have a type key ?
+            Type t = null;
+            if (values.ContainsKey(TypeKey))
+            {
+                try
+                {
+                    t = Type.GetType(values[TypeKey].ToString());
+                }
+                catch (Exception ex)
+                {
 
-		/// <summary>
-		/// Unpack a specific tyep of object from JSON
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="json"></param>
-		/// <returns></returns>
-		public static T Unpack<T>(string json) where T : IPackable
+                }
+            }
+            if (t== null)
+            {
+                // Create a generic object instance
+                t = typeof(GenericPackedObject);
+            }
+            // Get the unpacker for this type
+            Type unpackerType = typeof(IUnpacker<>).MakeGenericType(new Type[] { t });
+            IUnpacker<IPackable> unpacker = (IUnpacker<IPackable>)Locator.Current.GetService(unpackerType);
+            if (unpacker == null)
+            {
+                return null;
+            }
+            try
+            {
+                return unpacker.Unpack(values);
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Unpack an object from JSON format.
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static IPackable Unpack(Stream jsonFile)
+        {
+            StreamReader reader = new StreamReader(jsonFile);
+            IPackable result = Unpack(reader.ReadToEnd());
+            jsonFile.Close();
+            return result;
+        }
+
+        /// <summary>
+        /// Unpack a specific type of object from JSON
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static T Unpack<T>(string json) where T : IPackable
 		{
-			return default(T);
-		}
-	}
+            IReadOnlyDictionary<string, object> values = UnpackRaw(json);
+            if (values == null)
+                return default(T);
+            IUnpacker<T> unpacker = Locator.Current.GetService<IUnpacker<T>>();
+            if (unpacker == null)
+            {
+                return default(T);
+            }
+            try
+            {
+                return unpacker.Unpack(values);
+            }
+            catch (Exception ex)
+            {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// Unpack a specific type of object from JSON
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static T Unpack<T>(Stream jsonFile) where T : IPackable
+        {
+            StreamReader reader = new StreamReader(jsonFile);
+            T result = Unpack<T>(reader.ReadToEnd());
+            jsonFile.Close();
+            return result;
+        }
+    }
 }

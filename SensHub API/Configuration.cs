@@ -28,7 +28,7 @@ namespace SensHub.Plugins
 		/// </summary>
 		/// <param name="description">The description of the configuration.</param>
 		/// <param name="values">The values changed from default.</param>
-		public Configuration(IReadOnlyList<ConfigurationValue> description, IDictionary<string, object> values)
+		protected Configuration(IReadOnlyList<ConfigurationValue> description, IDictionary<string, object> values)
 		{
 			// Save the description
 			m_description = description;
@@ -178,11 +178,14 @@ namespace SensHub.Plugins
 		{
 			get
 			{
-				throw new NotImplementedException();
+                object result;
+                if (TryGetValue(key, out result))
+                    return result;
+                throw new KeyNotFoundException();
 			}
 			set
 			{
-				throw new InvalidOperationException();
+                Add(key, value);
 			}
 		}
 

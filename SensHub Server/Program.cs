@@ -38,6 +38,12 @@ namespace SensHub.Server
 			}
 		}
 
+        static ConfigurationValue[] ServerConfiguration =
+        {
+            new ConfigurationValue("mqttServer", ConfigurationValue.ValueType.StringValue, "localhost",
+                "Address of the MQTT server to use.")
+        };
+
 		static void Main(string[] args)
 		{
 			// Set up the logger
@@ -55,6 +61,15 @@ namespace SensHub.Server
 			// Make it globally available.
 			FileSystem fs = new FileSystem(options.StorageDirectory);
 			Locator.CurrentMutable.RegisterConstant(fs, typeof(FileSystem));
+            // Load the server configuration and make it globally available
+            ConfigurationImpl serverConfig = ConfigurationImpl.Load(
+                "SensHub.json",
+                new List<ConfigurationValue>(ServerConfiguration).AsReadOnly()
+                );
+            System.Console.WriteLine("mqttServer = {0}", serverConfig["mqttServer"]);
+            serverConfig["mqttServer"] = "127.0.0.1";
+            serverConfig.Save();
+            Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
