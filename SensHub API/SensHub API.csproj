@@ -45,7 +45,7 @@
     <Compile Include="IFolder.cs" />
     <Compile Include="IPlugin.cs" />
     <Compile Include="IPluginHost.cs" />
-    <Compile Include="ObjectPacker.cs" />
+    <Compile Include="IPackable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

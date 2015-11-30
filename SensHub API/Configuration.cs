@@ -9,7 +9,7 @@ namespace SensHub.Plugins
 	/// <summary>
 	/// Represents a configuration.
 	/// </summary>
-	public class Configuration : IPackable, IDictionary<string, object>, IConfigurable
+	public class Configuration : IPackable, IDictionary<string, object>
 	{
 		private Dictionary<string, object> m_values;
 		private Dictionary<string, ConfigurationValue> m_defaults;
@@ -111,7 +111,7 @@ namespace SensHub.Plugins
 		/// </summary>
 		public ICollection<string> Keys
 		{
-			get { return m_defaults.Keys }
+			get { return m_defaults.Keys; }
 		}
 
 		/// <summary>
@@ -134,6 +134,7 @@ namespace SensHub.Plugins
 		/// <returns></returns>
 		public bool TryGetValue(string key, out object value)
 		{
+			value = null;
 			lock (m_values)
 			{
 				if (m_values.ContainsKey(key))
@@ -157,7 +158,7 @@ namespace SensHub.Plugins
 		{
 			get 
 			{
-				List<object> values = new List();
+				List<object> values = new List<object>();
 				lock (m_values)
 				{
 					foreach (string key in m_defaults.Keys)

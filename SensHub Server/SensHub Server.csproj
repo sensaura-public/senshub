@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="FileSystem.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="ObjectPacker.cs" />
     <Compile Include="PluginHost.cs" />
     <Compile Include="PluginManager.cs" />
     <Compile Include="Program.cs" />
