@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SensHub.Plugins
 {
-    public interface IPlugin
+    public interface IPlugin : IDescribedEx
     {
 		/// <summary>
 		/// The UUID that uniquely identifies this plugin. This value is used to

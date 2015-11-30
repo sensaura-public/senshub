@@ -34,13 +34,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Configuration.cs" />
+    <Compile Include="ConfigurationValue.cs" />
+    <Compile Include="IConfigurable.cs" />
+    <Compile Include="IDescribed.cs" />
+    <Compile Include="IDescribedEx.cs" />
     <Compile Include="Utilities\BaseDictionary.cs" />
     <Compile Include="Utilities\Enumeration.cs" />
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="IFolder.cs" />
     <Compile Include="IPlugin.cs" />
     <Compile Include="IPluginHost.cs" />
-    <Compile Include="Utilities\ObjectPacker.cs" />
+    <Compile Include="ObjectPacker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

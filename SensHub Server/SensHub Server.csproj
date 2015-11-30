@@ -55,7 +55,6 @@
     <Compile Include="PluginManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Services\Configuration.cs" />
     <Compile Include="Services\Message.cs" />
     <Compile Include="Services\MessageBuilder.cs" />
     <Compile Include="Services\MessageBus.cs" />

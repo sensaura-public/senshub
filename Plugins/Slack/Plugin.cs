@@ -30,6 +30,21 @@ namespace SensHub.Extension.Slack
 			get { return PluginVersion; }
 		}
 
+		public IBitmap Icon
+		{
+			get { throw new NotImplementedException(); }
+		}
+
+		public string DisplayName
+		{
+			get { throw new NotImplementedException(); }
+		}
+
+		public string Description
+		{
+			get { throw new NotImplementedException(); }
+		}
+
 		public bool Initialise(IPluginHost host)
 		{
 			// TODO: Implement this correctly
@@ -42,5 +57,6 @@ namespace SensHub.Extension.Slack
 		{
 			// TODO: Implement this
 		}
+
 	}
 }
