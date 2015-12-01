@@ -51,5 +51,44 @@ namespace SensHub.Server.Http
             return message;
         }
 
+        /// <summary>
+        /// Helper method to generate HTTP 400 Bad Request responses
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public string BadRequest(HttpListenerResponse response, string message = null)
+        {
+            response.StatusCode = 400;
+            response.StatusDescription = "Bad request.";
+            return message;
+        }
+
+        /// <summary>
+        /// Helper method to generate HTTP 405 Method Not Supported responses
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public string MethodNotSupported(HttpListenerResponse response, string message = null)
+        {
+            response.StatusCode = 405;
+            response.StatusDescription = "Method not supported.";
+            return message;
+        }
+
+        /// <summary>
+        /// Helper method to generate HTTP 403 Permission Denied responses
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public string PermissionDenied(HttpListenerResponse response, string message = null)
+        {
+            response.StatusCode = 403;
+            response.StatusDescription = "Permission Denied.";
+            return message;
+        }
+
     }
 }

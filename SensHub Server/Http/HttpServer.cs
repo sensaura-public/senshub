@@ -30,8 +30,11 @@ namespace SensHub.Server.Http
         // URL handler instances
         private Dictionary<string, HttpRequestHandler> m_handlers;
 
-        // Active session
+        // Active sessions
         private Dictionary<Guid, HttpSession> m_sessions;
+
+        // RPC call manager
+        private RpcRequestHandler m_rpcHandler;
 
         public HttpServer(string sitePath)
         {
@@ -39,6 +42,8 @@ namespace SensHub.Server.Http
             m_sessions = new Dictionary<Guid, HttpSession>();
             m_handlers = new Dictionary<string, HttpRequestHandler>();
             AddHandler("/", new StaticFileHandler(m_sitePath));
+            m_rpcHandler = new RpcRequestHandler();
+            AddHandler("/api/", m_rpcHandler);
         }
 
         /// <summary>

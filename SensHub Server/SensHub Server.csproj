@@ -55,6 +55,9 @@
     <Compile Include="Http\HttpServer.cs" />
     <Compile Include="Http\HttpSession.cs" />
     <Compile Include="Http\MimeType.cs" />
+    <Compile Include="Http\RpcCall.cs" />
+    <Compile Include="Http\RpcException.cs" />
+    <Compile Include="Http\RpcRequestHandler.cs" />
     <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
