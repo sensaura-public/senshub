@@ -74,6 +74,25 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.eot" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.woff" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Bold.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Bold.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Bold.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Light.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Light.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Light.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Medium.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Medium.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Medium.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Regular.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Regular.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Regular.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Thin.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Thin.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Thin.woff2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SensHub API\SensHub API.csproj">
@@ -81,12 +100,17 @@
       <Name>SensHub API</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Resources\Site\css\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="Resources\mimetypes.txt" />
     <EmbeddedResource Include="Resources\Site\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\css\materialize.css" />
+    <EmbeddedResource Include="Resources\Site\css\sensaura.css" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.svg" />
+    <EmbeddedResource Include="Resources\Site\js\jquery.js" />
+    <EmbeddedResource Include="Resources\Site\js\materialize.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
