@@ -36,7 +36,7 @@ namespace SensHub.Plugins
 			m_defaults = new Dictionary<string, ConfigurationValue>();
 			foreach (ConfigurationValue value in description)
 			{
-				m_defaults[value.DisplayName.ToLower()] = value;
+				m_defaults[value.DisplayName] = value;
 			}
 			// Build the dictionary of changed values
 			m_values = new Dictionary<string, object>();
@@ -44,9 +44,8 @@ namespace SensHub.Plugins
 			{
 				foreach (string key in values.Keys)
 				{
-                    string lowerKey = key.ToLower();
-					if (m_defaults.ContainsKey(lowerKey))
-						m_values[lowerKey] = values[lowerKey];
+					if (m_defaults.ContainsKey(key))
+						m_values[key] = values[key];
 				}
 			}
 		}
@@ -84,7 +83,6 @@ namespace SensHub.Plugins
 		/// <param name="value">The new value to assign to the value.</param>
 		public void Add(string key, object value)
 		{
-            key = key.ToLower();
 			if (!m_defaults.ContainsKey(key))
 				throw new InvalidOperationException();
 			// Validate the incoming data
@@ -105,8 +103,7 @@ namespace SensHub.Plugins
 		/// <returns></returns>
 		public bool ContainsKey(string key)
 		{
-            key = key.ToLower();
-            return m_defaults.ContainsKey(key);
+			return m_defaults.ContainsKey(key);
 		}
 
 		/// <summary>
@@ -137,8 +134,7 @@ namespace SensHub.Plugins
 		/// <returns></returns>
 		public bool TryGetValue(string key, out object value)
 		{
-            key = key.ToLower();
-            value = null;
+			value = null;
 			lock (m_values)
 			{
 				if (m_values.ContainsKey(key))
