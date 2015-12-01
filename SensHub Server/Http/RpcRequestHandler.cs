@@ -153,6 +153,8 @@ namespace SensHub.Server.Http
         /// <returns></returns>
         public override string HandleRequest(HttpSession session, string url, HttpListenerRequest request, HttpListenerResponse response)
         {
+            // Save the session for our methods to use
+            Session = session;
             // Make sure it is a POST request and contains a JSON payload
             if (request.HttpMethod != "POST")
                 return MethodNotSupported(response);
