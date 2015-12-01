@@ -36,10 +36,6 @@
       <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Json, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c6752e45808247c2, processorArchitecture=MSIL">
-      <HintPath>..\packages\JSON.1.0.1\lib\net40\Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Splat, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Splat.1.6.2\lib\Net45\Splat.dll</HintPath>
       <Private>True</Private>
@@ -55,6 +51,7 @@
   <ItemGroup>
     <Compile Include="ConfigurationImpl.cs" />
     <Compile Include="FileSystem.cs" />
+    <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="ObjectPacker.cs" />
     <Compile Include="PluginHost.cs" />
