@@ -67,7 +67,18 @@ namespace SensHub.Server
 					continue;
 				}
 				// Get the plugins defined in the file (it can have more than one)
-				Type[] types = asm.GetTypes();
+				Type[] types = null;
+				try
+				{
+					types = asm.GetTypes();
+				}
+				catch (Exception ex)
+				{
+					// TODO: an exception here indicates a plugin built against a different version
+					//       of the API. Should report it as such.
+					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.ToString());
+					continue;
+				}
 				foreach (var candidate in types)
 				{
 					if (typeof(IPlugin).IsAssignableFrom(candidate))
