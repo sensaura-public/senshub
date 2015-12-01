@@ -104,54 +104,54 @@ namespace SensHub.Server
 
     }
 
-        /// <summary>
-        /// A parser for JSON.
-        /// <seealso cref="http://json.org" />
-        /// </summary>
-        public class JsonParser
+    /// <summary>
+    /// A parser for JSON.
+    /// <seealso cref="http://json.org" />
+    /// </summary>
+    public class JsonParser
+    {
+        private const NumberStyles JsonNumbers = NumberStyles.Float;
+        private static readonly IDictionary<Type, PropertyInfo[]> _cache;
+
+        private static readonly char[] _base16 = new[]
+                                {
+                                '0', '1', '2', '3',
+                                '4', '5', '6', '7',
+                                '8', '9', 'A', 'B',
+                                'C', 'D', 'E', 'F'
+                            };
+
+        static JsonParser()
         {
-            private const NumberStyles JsonNumbers = NumberStyles.Float;
-            private static readonly IDictionary<Type, PropertyInfo[]> _cache;
+            _cache = new Dictionary<Type, PropertyInfo[]>(0);
+        }
 
-            private static readonly char[] _base16 = new[]
-                                    {
-                                    '0', '1', '2', '3',
-                                    '4', '5', '6', '7',
-                                    '8', '9', 'A', 'B',
-                                    'C', 'D', 'E', 'F'
-                                };
+        public static string Serialize<T>(T instance)
+        {
+            var bag = GetBagForObject(instance);
 
-            static JsonParser()
-            {
-                _cache = new Dictionary<Type, PropertyInfo[]>(0);
-            }
+            return ToJson(bag);
+        }
 
-            public static string Serialize<T>(T instance)
-            {
-                var bag = GetBagForObject(instance);
+        public static object Deserialize(string json, Type type)
+        {
+            object instance;
+            var map = PrepareInstance(out instance, type);
+            var bag = FromJson(json);
 
-                return ToJson(bag);
-            }
+            DeserializeImpl(map, bag, instance);
+            return instance;
+        }
 
-            public static object Deserialize(string json, Type type)
-            {
-                object instance;
-                var map = PrepareInstance(out instance, type);
-                var bag = FromJson(json);
+        public static T Deserialize<T>(string json)
+        {
+            T instance;
+            var map = PrepareInstance(out instance);
+            var bag = FromJson(json);
 
-                DeserializeImpl(map, bag, instance);
-                return instance;
-            }
-
-            public static T Deserialize<T>(string json)
-            {
-                T instance;
-                var map = PrepareInstance(out instance);
-                var bag = FromJson(json);
-
-                DeserializeImpl(map, bag, instance);
-                return instance;
-            }
+            DeserializeImpl(map, bag, instance);
+            return instance;
+        }
 
         public static dynamic Deserialize(string json)
         {
@@ -458,7 +458,6 @@ namespace SensHub.Server
             }
             sb.Append("}");
         }
-
 
         internal static void SerializeString(StringBuilder sb, object item)
         {
