@@ -73,7 +73,7 @@ namespace SensHub.Server.Http
             Directory.CreateDirectory(m_sitePath);
             // Walk through all the resources
             var assembly = Assembly.GetExecutingAssembly();
-            string prefix = assembly.GetName().Name + ".Resources.";
+            string prefix = assembly.GetName().Name + ".Resources.Site.";
             foreach (var resourceName in assembly.GetManifestResourceNames())
             {
                 if (!resourceName.StartsWith(prefix))

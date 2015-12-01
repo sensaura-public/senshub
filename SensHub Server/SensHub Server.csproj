@@ -77,7 +77,11 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Resources\css\" />
+    <Folder Include="Resources\Site\css\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\mimetypes.txt" />
+    <EmbeddedResource Include="Resources\Site\index.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
