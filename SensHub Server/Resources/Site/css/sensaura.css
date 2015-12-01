@@ -1,0 +1,55 @@
+.page {
+  display: none;
+  }
+
+
+// Colors (see https://www.materialpalette.com/blue-grey/light-blue)
+.sensaura-dark-primary {
+  background-color: #455a64 !important; }
+.sensaura-dark-primary-text {
+  color: #455a64 !important; }
+.sensaura-primary {
+  background-color: #607d8b !important; }
+.sensaura-primary-text {
+  color: #607d8b !important; }
+.sensaura-light-primary {
+  background-color: #cfd8dc !important; }
+.sensaura-light-primary-text {
+  color: #cfd8dc !important; }
+.sensaura-icons {
+  background-color: #ffffff !important; }
+.sensaura-icons-text {
+  color: #ffffff !important; }
+.sensaura-accent {
+  background-color: #03a9f4 !important; }
+.sensaura-accent-text {
+  color: #03a9f4 !important; }
+.sensaura-text-primary {
+  background-color: #212121 !important; }
+.sensaura-text-primary-text {
+  color: #212121 !important; }
+.sensaura-text-secondary {
+  background-color: #727272 !important; }
+.sensaura-text-secondary-text {
+  color: #727272 !important; }
+.sensaura-divider {
+  background-color: #b6b6b6 !important; }
+.sensaura-divider-text {
+  color: #b6b6b6 !important; }
+
+.padding-tiny {
+  padding: 0.25em;
+  }
+
+.padding-small {
+  padding: 0.5em;
+  }
+
+.padding-1 {
+  padding: 1em;
+  }
+
+.sensaura-dropdown-panel {
+  display: none;
+  }
+
