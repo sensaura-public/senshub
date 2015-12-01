@@ -1,13 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using SensHub.Plugins;
-using SensHub.Plugins.Utilities;
-using SensHub.Server.Services;
+using SensHub.Server.Http;
 using CommandLine;
 using Splat;
 
@@ -50,12 +44,12 @@ namespace SensHub.Server
 			Locator.CurrentMutable.RegisterConstant(new Logger(), typeof(ILogger));
 			// Parse command line to get paths
 			Options options = new Options();
-			if (!CommandLine.Parser.Default.ParseArguments(args, options))
+			if (!Parser.Default.ParseArguments(args, options))
 				return;
 			// Make sure the storage directory exists
 			if (!Directory.Exists(options.StorageDirectory))
 			{
-				System.Console.WriteLine("Error: The storage directory '{0}' does not exist.", options.StorageDirectory);
+                LogHost.Default.Error("Error: The storage directory '{0}' does not exist.", options.StorageDirectory);
 				return;
 			}
 			// Make it globally available.
@@ -66,20 +60,17 @@ namespace SensHub.Server
                 "SensHub.json",
                 new List<ConfigurationValue>(ServerConfiguration).AsReadOnly()
                 );
-            System.Console.WriteLine("mqttServer = {0}", serverConfig["mqttServer"]);
-            serverConfig["mqttServer"] = "127.0.0.1";
-            serverConfig.Save();
             Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
+            // TODO: Initialise logging now we have a server configuration
+            // Set up the files for the HttpServer
+            FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
+            HttpServer httpServer = new HttpServer(sitePath.BasePath);
+            httpServer.UnpackSite();
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
 			plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();
-		}
-
-		static void bus_MessageReceived(Topic topic, Message message)
-		{
-			System.Console.WriteLine("Message received on topic '{0}'", topic);
 		}
 	}
 }

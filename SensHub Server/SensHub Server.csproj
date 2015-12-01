@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="ConfigurationImpl.cs" />
     <Compile Include="FileSystem.cs" />
+    <Compile Include="Http\HttpServer.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="ObjectPacker.cs" />
@@ -73,7 +74,12 @@
       <Name>SensHub API</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\css\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
