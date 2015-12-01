@@ -35,7 +35,9 @@ namespace SensHub.Server
         static ConfigurationValue[] ServerConfiguration =
         {
             new ConfigurationValue("mqttServer", ConfigurationValue.ValueType.StringValue, "localhost",
-                "Address of the MQTT server to use.")
+                "Address of the MQTT server to use."),
+            new ConfigurationValue("httpPort", ConfigurationValue.ValueType.NumericValue, 8000,
+                "Set the port that the HTTP server will listen on.")
         };
 
 		static void Main(string[] args)
@@ -66,11 +68,17 @@ namespace SensHub.Server
             FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
             HttpServer httpServer = new HttpServer(sitePath.BasePath);
             httpServer.UnpackSite();
+            Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
 			plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();
-		}
+            // Keep things running in the background
+            httpServer.Start();
+            System.Console.WriteLine("Server running - press any key to quit.");
+            System.Console.ReadKey();
+            httpServer.Stop();
+        }
 	}
 }

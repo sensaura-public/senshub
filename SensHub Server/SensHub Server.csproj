@@ -51,7 +51,9 @@
   <ItemGroup>
     <Compile Include="ConfigurationImpl.cs" />
     <Compile Include="FileSystem.cs" />
+    <Compile Include="Http\HttpRequestHandler.cs" />
     <Compile Include="Http\HttpServer.cs" />
+    <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="ObjectPacker.cs" />
@@ -73,9 +75,6 @@
       <Project>{92d8ec14-fd7b-4328-9798-1397e4810775}</Project>
       <Name>SensHub API</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\index.html" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\css\" />
