@@ -53,6 +53,7 @@
     <Compile Include="FileSystem.cs" />
     <Compile Include="Http\HttpRequestHandler.cs" />
     <Compile Include="Http\HttpServer.cs" />
+    <Compile Include="Http\HttpSession.cs" />
     <Compile Include="Http\MimeType.cs" />
     <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="JsonParser.cs" />

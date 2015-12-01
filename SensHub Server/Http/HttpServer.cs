@@ -18,6 +18,9 @@ namespace SensHub.Server.Http
     /// </summary>
     public class HttpServer : IEnableLogger
     {
+        // Name of the cookie to use for sessions
+        private const string SessionCookie = "SensHubSessionID";
+
         // The directory containing the site
         private string m_sitePath;
 
@@ -27,9 +30,13 @@ namespace SensHub.Server.Http
         // URL handler instances
         private Dictionary<string, HttpRequestHandler> m_handlers;
 
+        // Active session
+        private Dictionary<Guid, HttpSession> m_sessions;
+
         public HttpServer(string sitePath)
         {
             m_sitePath = sitePath;
+            m_sessions = new Dictionary<Guid, HttpSession>();
             m_handlers = new Dictionary<string, HttpRequestHandler>();
             AddHandler("/", new StaticFileHandler(m_sitePath));
         }
@@ -93,8 +100,60 @@ namespace SensHub.Server.Http
             }
         }
 
+        /// <summary>
+        /// Get (or create) a session instance for the given request.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        private HttpSession GetRequestSession(HttpListenerRequest request)
+        {
+            HttpSession session = null;
+            // See if the cookie has a session
+            Cookie cookie = request.Cookies[SessionCookie];
+            if (cookie != null)
+            {
+                try
+                {
+                    Guid sessionID = Guid.Parse(cookie.Value);
+                    if (!m_sessions.TryGetValue(sessionID, out session))
+                        session = null;
+                }
+                catch
+                {
+                    // Invalid format, just ignore it
+                }
+            }
+            if (session == null)
+            {
+                session = new HttpSession();
+                session.RemoteAddress = request.RemoteEndPoint.Address.ToString();
+                m_sessions[session.UUID] = session;
+            }
+            // Do some verification
+            if (session.RemoteAddress != request.RemoteEndPoint.Address.ToString())
+            {
+                this.Log().Error("Attempt to use session from incorrect address - was {0}, now {1}.",
+                    session.RemoteAddress,
+                    request.RemoteEndPoint.Address.ToString()
+                    );
+                return null;
+            }
+            return session;
+        }
+
         public string ProcessRequest(HttpListenerRequest request, HttpListenerResponse response)
         {
+            // Get the session
+            HttpSession session = GetRequestSession(request);
+            if (session == null)
+            {
+                response.StatusCode = 403;
+                response.StatusDescription = "Request denied.";
+                return null;
+            }
+            session.LastAccess = DateTime.Now;
+            response.Cookies.Add(new Cookie(SessionCookie, session.UUID.ToString()));
+            this.Log().Debug("{0} - {1}", request.Url, session.UUID);
             // Find a matching handler
             HttpRequestHandler handler = null;
             string fullURI = request.Url.AbsolutePath;
@@ -120,7 +179,7 @@ namespace SensHub.Server.Http
             {
                 try
                 {
-                    result = handler.HandleRequest(fullURI.Substring(matchLength), request, response);
+                    result = handler.HandleRequest(session, fullURI.Substring(matchLength), request, response);
                 }
                 catch (Exception ex)
                 {
@@ -160,7 +219,6 @@ namespace SensHub.Server.Http
                             var ctx = c as HttpListenerContext;
                             try
                             {
-                                this.Log().Debug("{0}", ctx.Request.Url);
                                 // Set default content type
                                 ctx.Response.ContentType = "text/plain";
                                 // Process the request

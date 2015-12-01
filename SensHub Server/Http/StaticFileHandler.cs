@@ -17,7 +17,7 @@ namespace SensHub.Server.Http
             m_path = path;
         }
 
-        public override string HandleRequest(string url, HttpListenerRequest request, HttpListenerResponse response)
+        public override string HandleRequest(HttpSession session, string url, HttpListenerRequest request, HttpListenerResponse response)
         {
             // Convert the URI into a full file system path
             string path = Path.GetFullPath(Path.Combine(m_path, url));

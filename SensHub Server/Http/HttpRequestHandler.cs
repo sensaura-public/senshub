@@ -15,6 +15,7 @@ namespace SensHub.Server.Http
         /// This method is called when an incoming request matches the
         /// prefix this HttpRequestHandler is bound to.
         /// </summary>
+        /// <param name="session"></param>
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
@@ -22,7 +23,7 @@ namespace SensHub.Server.Http
         /// Return a string to use as the reponse or null if the response
         /// object has been filled out already.
         /// </returns>
-        public abstract string HandleRequest(string url, HttpListenerRequest request, HttpListenerResponse response);
+        public abstract string HandleRequest(HttpSession session, string url, HttpListenerRequest request, HttpListenerResponse response);
 
         /// <summary>
         /// Helper method to generate HTTP 404 Not Found responses
