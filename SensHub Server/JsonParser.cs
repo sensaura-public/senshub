@@ -75,15 +75,13 @@ namespace SensHub.Server
 
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
-            var name = Underscored(binder.Name);
-            _hash[name] = value;
-            return _hash[name] == value;
+            _hash[binder.Name] = value;
+            return _hash[binder.Name] == value;
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            var name = Underscored(binder.Name);
-            return YieldMember(name, out result);
+            return YieldMember(binder.Name, out result);
         }
 
         private bool YieldMember(string name, out object result)
@@ -104,21 +102,6 @@ namespace SensHub.Server
             return false;
         }
 
-        private static string Underscored(IEnumerable<char> pascalCase)
-        {
-            var sb = new StringBuilder();
-            var i = 0;
-            foreach (var c in pascalCase)
-            {
-                if (char.IsUpper(c) && i > 0)
-                {
-                    sb.Append("_");
-                }
-                sb.Append(c);
-                i++;
-            }
-            return sb.ToString().ToLowerInvariant();
-        }
     }
 
         /// <summary>
@@ -454,7 +437,7 @@ namespace SensHub.Server
             var count = 0;
             foreach (var key in nested.Keys)
             {
-                SerializeString(sb, key.ToLower());
+                SerializeString(sb, key);
                 sb.Append(":");
 
                 var value = nested[key];
