@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SensHub.Server.Services
+namespace SensHub.Plugins
 {
 	/// <summary>
 	/// Represents a single message posted on the MessageBus. Once published

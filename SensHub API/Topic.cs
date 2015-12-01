@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using SensHub.Plugins;
 using SensHub.Plugins.Utilities;
 
-namespace SensHub.Server.Services
+namespace SensHub.Plugins
 {
 	/// <summary>
 	/// Topics are used to group messages. A topic may only be created as a
