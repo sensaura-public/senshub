@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
@@ -37,11 +38,20 @@ namespace SensHub.Server.Mqtt
 
 		}
 
+		// Constants
+		private const int QueueWaitPeriod = 1000;
+		private const int HeartBeatPeriod = 60000;
+		private const string HeartBeatTopic = "server/heartbeat";
+
 		// Instance variables
 		private MessageQueue m_queue;
 		private Dictionary<ITopic, ISet<ISubscriber>> m_subscribers;
 		private Dictionary<ISubscriber, ISet<ITopic>> m_topics;
 		private object m_lock;
+		private int m_messagesProcessed;
+		private int m_messagesReceived;
+		private DateTime m_lastHeartbeat;
+		private MessageBuilder m_builder;
 
 		public MessageBus()
 			: base(null, "")
@@ -51,6 +61,10 @@ namespace SensHub.Server.Mqtt
 			Private = Create("private");
 			// Set up the queue
 			m_queue = new MessageQueue();
+			m_builder = new MessageBuilder();
+			m_lastHeartbeat = DateTime.Now;
+			m_messagesProcessed = 0;
+			m_messagesReceived = 0;
 			// Set up subscriber mappings
 			m_lock = new Object();
 			m_subscribers = new Dictionary<ITopic, ISet<ISubscriber>>();
@@ -65,24 +79,48 @@ namespace SensHub.Server.Mqtt
 		/// </summary>
 		public void Run()
 		{
+			QueuedMessage message;
 			while (true)
 			{
-				QueuedMessage message = m_queue.Take();
-				// Dispatch to all subscribers
-				foreach (ISubscriber subscriber in message.Subscribers)
+				if (m_queue.TryTake(out message, QueueWaitPeriod))
 				{
-					try
+					this.Log().Debug("Dispatching message.");
+					// Dispatch to all subscribers
+					foreach (ISubscriber subscriber in message.Subscribers)
 					{
-						subscriber.MessageReceived(message.Topic, message.Source, message.Payload);
+						if (subscriber != message.Source)
+						{
+							ThreadPool.QueueUserWorkItem((x) =>
+							{
+								try
+								{
+									subscriber.MessageReceived(message.Topic, message.Source, message.Payload);
+									m_messagesProcessed++;
+								}
+								catch (Exception ex)
+								{
+									this.Log().Error("Failed to dispatch message to subscriber - {0}", ex.ToString());
+								}
+							});
+						}
 					}
-					catch (Exception ex)
-					{
-						this.Log().Error("Failed to dispatch message to subscriber - {0}", ex.ToString());
-					}
+				}
+				// Do we need to send a heartbeat message ?
+				if ((DateTime.Now - m_lastHeartbeat).TotalMilliseconds >= HeartBeatPeriod)
+				{
+					m_builder.Add("messagesReceived", m_messagesReceived);
+					m_builder.Add("messagesHandled", m_messagesProcessed);
+					Publish(Private.Create(HeartBeatTopic), m_builder.CreateMessage());
+					m_messagesProcessed = 0;
+					m_messagesReceived = 0;
+					m_lastHeartbeat = DateTime.Now;
 				}
 				// TODO: Check for server shutdown message
 				if (System.Console.KeyAvailable)
+				{
+					System.Console.ReadKey();
 					return;
+				}
 			}
 		}
 
@@ -191,6 +229,7 @@ namespace SensHub.Server.Mqtt
 					Source = source,
 					Subscribers = subscribers
 				});
+			m_messagesReceived++;
 		}
 		#endregion
 	}
