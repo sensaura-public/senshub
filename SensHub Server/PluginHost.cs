@@ -46,6 +46,11 @@ namespace SensHub.Server
 			get { return m_data; }
 		}
 
+		public ITopic Parent
+		{
+			get { return m_messageBus.Parent; }
+		}
+
 		public ITopic Public
 		{
 			get { return m_messageBus.Public; }
@@ -54,6 +59,11 @@ namespace SensHub.Server
 		public ITopic Private
 		{
 			get { return m_messageBus.Private; }
+		}
+
+		public ITopic Create(string topic)
+		{
+			return m_messageBus.Create(topic);
 		}
 
 		public void Subscribe(ITopic topic, ISubscriber subscriber)

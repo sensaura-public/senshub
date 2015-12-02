@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using SensHub.Plugins;
 using Splat;
 
 namespace SensHub.Server.Http
@@ -232,6 +233,36 @@ namespace SensHub.Server.Http
         {
             return true;
         }
+
+		[RpcCall("Subscribe", AuthenticationRequired = true)]
+		public bool Subscribe(string topic)
+		{
+			IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
+			ITopic t = messageBus.Create(topic);
+			messageBus.Subscribe(t, Session);
+			return true;
+		}
+
+		[RpcCall("Unsubscribe", AuthenticationRequired = true)]
+		public bool Unsubscribe(string topic)
+		{
+			IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
+			ITopic t = messageBus.Create(topic);
+			messageBus.Unsubscribe(t, Session);
+			return true;
+		}
+
+		[RpcCall("Publish", AuthenticationRequired = true)]
+		public bool Publish(string topic, IDictionary<string, object> message)
+		{
+			IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
+			ITopic t = messageBus.Create(topic);
+			MessageBuilder builder = new MessageBuilder();
+			foreach (string key in message.Keys)
+				builder.Add(key, message[key]);
+			messageBus.Publish(t, builder.CreateMessage(), Session);
+			return true;
+		}
         #endregion
     }
 }

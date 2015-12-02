@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SensHub.Plugins
 {
-	public interface IMessageBus
+	public interface IMessageBus : ITopic
 	{
 		/// <summary>
 		/// The root of the 'public' topic tree. Messages sent to this
