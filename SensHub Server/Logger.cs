@@ -71,7 +71,7 @@ namespace SensHub.Server
 					LogTarget target = new LogTarget();
 					target.m_output = output;
 					if (level >= LogLevel.Warn)
-						target.m_topic = logBase.Create(level.ToString().ToLower());
+						target.m_topic = logBase.Create(level.ToString().ToLower() + "s");
 					m_targets.Add(level, target);
 				}
 				m_lastLogOpen = DateTime.Now;

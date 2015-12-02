@@ -41,7 +41,6 @@ namespace SensHub.Server.Mqtt
 		// Constants
 		private const int QueueWaitPeriod = 1000;
 		private const int HeartBeatPeriod = 60000;
-		private const string HeartBeatTopic = "server/heartbeat";
 
 		// Instance variables
 		private MessageQueue m_queue;
@@ -109,7 +108,7 @@ namespace SensHub.Server.Mqtt
 				{
 					m_builder.Add("messagesReceived", m_messagesReceived);
 					m_builder.Add("messagesHandled", m_messagesProcessed);
-					Publish(Private.Create(HeartBeatTopic), m_builder.CreateMessage());
+					Publish(Create(Topics.ServerHeartbeat), m_builder.CreateMessage());
 					this.Log().Info("Received {0} messages, {1} dispatched to subscribers.", m_messagesReceived, m_messagesProcessed);
 					m_messagesProcessed = 0;
 					m_messagesReceived = 0;
@@ -218,6 +217,8 @@ namespace SensHub.Server.Mqtt
 
 		public void Publish(ITopic topic, Message message, object source = null)
 		{
+			m_messagesReceived++;
+			// Get the set of subscribers
 			ISet<ISubscriber> subscribers = GetSubscribersForTopic(topic);
 			if (subscribers.Count == 0)
 				return; // No one is interested
@@ -229,7 +230,6 @@ namespace SensHub.Server.Mqtt
 					Source = source,
 					Subscribers = subscribers
 				});
-			m_messagesReceived++;
 		}
 		#endregion
 	}
