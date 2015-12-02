@@ -12,7 +12,7 @@ namespace SensHub.Server
     internal class ConfigurationImpl : Configuration
     {
         // Directory where configuration files are kept
-        private const string ConfigurationDirectory = "configs";
+        private const string ConfigurationDirectory = "config";
 
         // Name of the backing file for the configuration
         private string m_file;

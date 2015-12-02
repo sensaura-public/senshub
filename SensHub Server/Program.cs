@@ -38,13 +38,16 @@ namespace SensHub.Server
             new ConfigurationValue("mqttServer", ConfigurationValue.ValueType.StringValue, "localhost",
                 "Address of the MQTT server to use."),
             new ConfigurationValue("httpPort", ConfigurationValue.ValueType.NumericValue, 8000,
-                "Set the port that the HTTP server will listen on.")
+                "Set the port that the HTTP server will listen on."),
+			new ConfigurationValue("logLevel", ConfigurationValue.ValueType.StringValue, LogLevel.Warn.ToString(),
+				"The logging level for the server. Levels greater than or above this level will be logged.")
         };
 
 		static void Main(string[] args)
 		{
 			// Set up the logger
-			Locator.CurrentMutable.RegisterConstant(new Logger(), typeof(ILogger));
+			Logger logger = new Logger();
+			Locator.CurrentMutable.RegisterConstant(logger, typeof(ILogger));
 			// Parse command line to get paths
 			Options options = new Options();
 			if (!Parser.Default.ParseArguments(args, options))
@@ -67,7 +70,8 @@ namespace SensHub.Server
 			// Set up the MessageBus
 			MessageBus messageBus = new MessageBus();
 			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
-            // TODO: Initialise logging now we have a server configuration
+            // Initialise logging now we have a server configuration
+			logger.Enable();
             // Set up the  HttpServer
             FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
             HttpServer httpServer = new HttpServer(sitePath.BasePath);

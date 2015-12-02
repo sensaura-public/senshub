@@ -84,7 +84,6 @@ namespace SensHub.Server.Mqtt
 			{
 				if (m_queue.TryTake(out message, QueueWaitPeriod))
 				{
-					this.Log().Debug("Dispatching message.");
 					// Dispatch to all subscribers
 					foreach (ISubscriber subscriber in message.Subscribers)
 					{
@@ -111,6 +110,7 @@ namespace SensHub.Server.Mqtt
 					m_builder.Add("messagesReceived", m_messagesReceived);
 					m_builder.Add("messagesHandled", m_messagesProcessed);
 					Publish(Private.Create(HeartBeatTopic), m_builder.CreateMessage());
+					this.Log().Info("Received {0} messages, {1} dispatched to subscribers.", m_messagesReceived, m_messagesProcessed);
 					m_messagesProcessed = 0;
 					m_messagesReceived = 0;
 					m_lastHeartbeat = DateTime.Now;
