@@ -61,6 +61,8 @@
     <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="Mqtt\MessageBus.cs" />
+    <Compile Include="Mqtt\Topic.cs" />
     <Compile Include="ObjectPacker.cs" />
     <Compile Include="PluginHost.cs" />
     <Compile Include="PluginManager.cs" />

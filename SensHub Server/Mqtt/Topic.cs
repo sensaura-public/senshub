@@ -4,27 +4,26 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using SensHub.Plugins.Utilities;
+using SensHub.Plugins;
 
-namespace SensHub.Plugins
+namespace SensHub.Server.Mqtt
 {
 	/// <summary>
 	/// Topics are used to group messages. A topic may only be created as a
 	/// child of another topic, the MessageBus itself represents the root
 	/// topic for the entire system.
 	/// </summary>
-	public class Topic
+	public class Topic : ITopic
 	{
+		// Regular expression to match topics
+		private static readonly Regex TOPIC_REGEX = new Regex(@"^[a-zA-Z0-9\-_]+$");
+ 
+		// Separator characters for topic paths
 		private static readonly char[] TOPIC_SEPARATOR = { '/' };
 
-		//--- Events
-		public delegate void MessageReceivedHandler(Topic topic, Message message);
-		public event MessageReceivedHandler MessageReceived;
-
 		//--- Instance variables
-		private Topic                     m_parent;   // Parent topic
-		private string                    m_name;     // Name of this topic
-		private string                    m_fqname;   // Fully qualified name
+		private string m_name;     // Name of this topic
+		private string m_fqname;   // Fully qualified name
 		private Dictionary<string, Topic> m_children; // Child nodes
 
 		/// <summary>
@@ -43,17 +42,22 @@ namespace SensHub.Plugins
 		internal Topic(Topic parent, string name)
 		{
 			m_children = new Dictionary<string, Topic>();
-			m_parent = parent;
+			Parent = parent;
 			m_name = name;
 		}
 
 		#region Public API
 		/// <summary>
-		/// Create a child topic of this topic.
+		/// Provide read only access to the parent topic.
 		/// </summary>
-		/// <param name="name">The name of the new child topic.</param>
-		/// <returns></returns>
-		public Topic CreateTopic(string name)
+		public ITopic Parent { get; private set; }
+
+		/// <summary>
+		/// Create (or acquire) a child topic.
+		/// </summary>
+		/// <param name="child">The name of the child topic to create.</param>
+		/// <returns>The new topic</returns>
+		public ITopic Create(string name)
 		{
 			// Check arguments
 			if ((name == null) || (name.Length == 0))
@@ -65,7 +69,7 @@ namespace SensHub.Plugins
 			{
 				if (part.Length == 0)
 					throw new ArgumentException("Topic contains an empty child name.");
-				if (!part.IsValidIdentifier())
+				if (!TOPIC_REGEX.IsMatch(part))
 					throw new ArgumentException("Topic contains a child name with illegal characters.");
 			}
 			// Create all the children
@@ -74,16 +78,6 @@ namespace SensHub.Plugins
 				child = child.CreateDirectChild(part);
 			// Return the final leaf
 			return child;
-		}
-
-		/// <summary>
-		/// Publish a message on this topic.
-		/// </summary>
-		/// <param name="message"></param>
-		public void Publish(Message message)
-		{
-			if (message != null)
-				FireMessageReceived(this, message);
 		}
 
 		/// <summary>
@@ -96,8 +90,8 @@ namespace SensHub.Plugins
 			if (m_fqname == null)
 			{
 				// Start with the parent name if we have one
-				if (m_parent != null)
-					m_fqname = String.Format("{0}/{1}", m_parent.ToString(), m_name);
+				if (Parent != null)
+					m_fqname = String.Format("{0}/{1}", Parent.ToString(), m_name);
 				else
 					m_fqname = m_name;
 			}
@@ -124,26 +118,6 @@ namespace SensHub.Plugins
 				}
 			}
 			return child;
-		}
-
-		/// <summary>
-		/// Fire the message received events. These messages are dispatched
-		/// asynchronously so the publisher is not blocked.
-		/// </summary>
-		/// <param name="topic">The topic the message was received on.</param>
-		/// <param name="message">The message that was published.</param>
-		protected void FireMessageReceived(Topic topic, Message message)
-		{
-			var handler = MessageReceived;
-			if (handler != null)
-			{
-				// Invoke handlers asynchronously
-				foreach (MessageReceivedHandler action in handler.GetInvocationList())
-					action.BeginInvoke(topic, message, null, null);
-			}
-			// Fire message for all parent topics as well
-			if (m_parent != null)
-				m_parent.FireMessageReceived(topic, message);
 		}
 		#endregion
 	}

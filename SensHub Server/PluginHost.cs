@@ -21,10 +21,12 @@ namespace SensHub.Server
 		
 		private IPlugin m_plugin;
 		private IFolder m_data;
+		private IMessageBus m_messageBus;
 
 		public PluginHost(IPlugin plugin)
 		{
 			m_plugin = plugin;
+			m_messageBus = Locator.Current.GetService<IMessageBus>();
 		}
 
 		#region Implementation of IPluginHost
@@ -44,6 +46,35 @@ namespace SensHub.Server
 			get { return m_data; }
 		}
 
+		public ITopic Public
+		{
+			get { return m_messageBus.Public; }
+		}
+
+		public ITopic Private
+		{
+			get { return m_messageBus.Private; }
+		}
+
+		public void Subscribe(ITopic topic, ISubscriber subscriber)
+		{
+			m_messageBus.Subscribe(topic, subscriber);
+		}
+
+		public void Unsubscribe(ITopic topic, ISubscriber subscriber)
+		{
+			m_messageBus.Unsubscribe(topic, subscriber);
+		}
+
+		public void Unsubscribe(ISubscriber subscriber)
+		{
+			m_messageBus.Unsubscribe(subscriber);
+		}
+
+		public void Publish(ITopic topic, Message message, object source = null)
+		{
+			m_messageBus.Publish(topic, message, source);
+		}
 		#endregion
 
 		#region Custom Operations

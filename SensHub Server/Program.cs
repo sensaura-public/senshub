@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SensHub.Plugins;
 using SensHub.Server.Http;
+using SensHub.Server.Mqtt;
 using CommandLine;
 using Splat;
 
@@ -63,21 +64,26 @@ namespace SensHub.Server
                 new List<ConfigurationValue>(ServerConfiguration).AsReadOnly()
                 );
             Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
+			// Set up the MessageBus
+			MessageBus messageBus = new MessageBus();
+			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
             // TODO: Initialise logging now we have a server configuration
-            // Set up the files for the HttpServer
+            // Set up the  HttpServer
             FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
             HttpServer httpServer = new HttpServer(sitePath.BasePath);
-            httpServer.UnpackSite();
             Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
 			plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();
-            // Keep things running in the background
-            httpServer.Start();
-            System.Console.WriteLine("Server running - press any key to quit.");
-            System.Console.ReadKey();
+            // Unpack the static site contents and start the HTTP server
+			httpServer.UnpackSite();
+			httpServer.Start();
+			// The MessageBus will run on the main thread until a shutdown is requested
+			System.Console.WriteLine("Server running - press any key to quit.");
+			messageBus.Run();
+			// Clean up
             httpServer.Stop();
         }
 	}

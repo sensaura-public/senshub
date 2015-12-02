@@ -7,7 +7,15 @@ using System.Globalization;
 
 namespace SensHub.Plugins
 {
-    public interface IPluginHost
+	/// <summary>
+	/// Provides the host interface for plugins.
+	/// 
+	/// The host interface provides limited access to the SensHub server
+	/// internals, allowing a plugin to work with the MessageBus, register
+	/// actions, filters and sources and manages configuration and data
+	/// files for the plugin.
+	/// </summary>
+    public interface IPluginHost : IMessageBus
     {
 		/// <summary>
 		/// The version of the SensHub server.
