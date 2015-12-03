@@ -65,7 +65,7 @@ namespace SensHub.Server.Mqtt
 		public void ApplyConfiguration(Configuration configuration)
 		{
 			// Make sure we have an identity string
-			if (configuration[IdentityKey] == "")
+			if (configuration[IdentityKey].ToString() == "")
 			{
 				configuration[IdentityKey] = Guid.NewGuid().ToString();
 				configuration.Save();
@@ -88,6 +88,11 @@ namespace SensHub.Server.Mqtt
 				m_server = configuration[ServerKey].ToString();
 				m_mqttTopic = configuration[TopicKey].ToString();
 				m_identity = configuration[IdentityKey].ToString();
+				this.Log ().Debug ("MQTT Connection Configuration - server = '{0}', mqttTopic = '{1}', identity = '{2}'",
+					m_server,
+					m_mqttTopic,
+					m_identity
+					);
 				// Establish the connection
 				m_client = new MqttClient(m_server);
 				m_client.ConnectionClosed += OnMqttConnectionClosed;
@@ -118,8 +123,9 @@ namespace SensHub.Server.Mqtt
 								}
 								if (result == 0)
 								{
+									this.Log().Debug("Connection established, subscribing to '{0}'", m_mqttTopic + "/#");
 									// Finish our configuration
-									m_client.Subscribe(new string[] { m_mqttTopic + "/#" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_LEAST_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+									m_client.Subscribe(new string[] { m_mqttTopic + "/#" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
 								}
 							}
 						}
