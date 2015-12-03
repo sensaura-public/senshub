@@ -8,16 +8,20 @@
       <value name="logLevel" type="OptionList" default="Warn">
         <text lang="en">The minimimum logging level. Only messages of this severity or above will be logged.</text>
         <selection name="Error">
-          <display lang="en">Error messages.</display>
+          <displayname lang="en">Error</displayname>
+          <shortdescription lang="en">Error messages.</shortdescription>
         </selection>
         <selection name="Warn">
-          <display lang="en">Warning messages.</display>
+          <displayname lang="en">Warn</displayname>
+          <shortdescription lang="en">Warning messages.</shortdescription>
         </selection>
         <selection name="Info">
-          <display lang="en">Informational messages.</display>
+          <displayname lang="en">Info</displayname>
+          <shortdescription lang="en">Informational messages.</shortdescription>
         </selection>
         <selection name="Debug">
-          <display lang="en">Debugging messages.</display>
+          <displayname lang="en">Debug</displayname>
+          <shortdescription lang="en">Debugging messages.</shortdescription>
         </selection>
       </value>
       <value name="httpPort" type="NumericValue" default="8000">

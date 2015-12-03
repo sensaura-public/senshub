@@ -32,6 +32,10 @@ namespace SensHub.Server
 		private const string SelectionTag = "selection";
 		private const string TextTag = "text";
 		private const string OptionTag = "option";
+		private const string DisplayNameTag = "displayname";
+		private const string ShortDescriptionTag = "shortdescription";
+		private const string LongDescriptionTag = "longdescription";
+		private const string IconTag = "icon";
 
 		// Attribute names
 		private const string DefaultLangAttribute = "defaultLang";
@@ -167,17 +171,17 @@ namespace SensHub.Server
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		private string GetLocalisedText(string defaultLang, XmlElement element)
+		private string GetLocalisedText(string defaultLang, XmlElement element, string textTag = TextTag)
 		{
 			var items = from node in element.ChildNodes.Cast<XmlElement>()
-						where (node.Name == TextTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == CultureInfo.CurrentCulture.Name)
+						where (node.Name == textTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == CultureInfo.CurrentCulture.Name)
 						select node;
 			int count = items.Count();
 			if (count == 0)
 			{
 				// Look for the default language instead
 				items = from node in element.ChildNodes.Cast<XmlElement>()
-						where (node.Name == TextTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == defaultLang)
+						where (node.Name == textTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == defaultLang)
 						select node;
 				count = items.Count();
 			}
@@ -265,9 +269,23 @@ namespace SensHub.Server
 			return new ObjectConfiguration(values);
 		}
 
-		private ObjectDescription ProcessDescription(string defaultLang, XmlElement element)
+		/// <summary>
+		/// Extract a description from the given element.
+		/// 
+		/// This is used for the object description as well as individual item descriptions.
+		/// </summary>
+		/// <param name="defaultLang"></param>
+		/// <param name="parent"></param>
+		/// <returns></returns>
+		private ObjectDescription ProcessDescription(string defaultLang, XmlElement parent)
 		{
-			return null;
+			ObjectDescription description = new ObjectDescription();
+			// Get the text first
+			description.DisplayName = GetLocalisedText(defaultLang, parent, DisplayNameTag);
+			description.Description = GetLocalisedText(defaultLang, parent, ShortDescriptionTag);
+			description.DetailedDescription = GetLocalisedText(defaultLang, parent, LongDescriptionTag);
+			// TODO: Handle the icon differently
+			return description;
 		}
 
 		private void ProcessClass(string className, string defaultLang, XmlElement element)
