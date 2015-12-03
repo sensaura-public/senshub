@@ -139,6 +139,42 @@ namespace SensHub.Server
 		}
 
 		/// <summary>
+		/// Get a description by fully qualified class name
+		/// </summary>
+		/// <param name="classname"></param>
+		/// <returns></returns>
+		public IObjectDescription GetDescription(string className)
+		{
+			IObjectDescription description;
+			if (!m_descriptions.TryGetValue(className, out description))
+				return null;
+			return description;
+		}
+
+		/// <summary>
+		/// Get the description for objects of a particular type
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public IObjectDescription GetDescription(Type t)
+		{
+			string className = String.Format("{0}.{1}",
+				t.Namespace,
+				t.Name);
+			return GetDescription(className);
+		}
+
+		/// <summary>
+		/// Get the description for objects of a particular type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public IObjectDescription GetDescription<T>()
+		{
+			return GetDescription(typeof(T));
+		}
+
+		/// <summary>
 		/// Get a named configuration
 		/// </summary>
 		/// <param name="className"></param>
@@ -152,16 +188,26 @@ namespace SensHub.Server
 		}
 
 		/// <summary>
+		/// Get configuration description for a given type.
+		/// </summary>
+		/// <param name="t"></param>
+		/// <returns></returns>
+		public ObjectConfiguration GetConfiguration(Type t)
+		{
+			string className = String.Format("{0}.{1}",
+				t.Namespace,
+				t.Name);
+			return GetConfiguration(className);
+		}
+
+		/// <summary>
 		/// Get the configuration for a specific type.
 		/// </summary>
 		/// <typeparam name="T"></typeparam>
 		/// <returns></returns>
 		public ObjectConfiguration GetConfiguration<T>()
 		{
-			string className = String.Format("{0}.{1}",
-				typeof(T).Namespace,
-				typeof(T).Name);
-			return GetConfiguration(className);
+			return GetConfiguration(typeof(T));
 		}
 
 		#region XML Parser Helpers

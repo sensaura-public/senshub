@@ -51,6 +51,7 @@ namespace SensHub.Server
 				this.Log().Warn("Plugin directory '{0}' does not exist.", directory);
 				return;
 			}
+			MetadataManager metadata = Locator.Current.GetService<MetadataManager>();
 			String[] files = Directory.GetFiles(directory, "*.dll");
 			foreach (string pluginDLL in files)
 			{
@@ -79,10 +80,25 @@ namespace SensHub.Server
 					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.ToString());
 					continue;
 				}
+				// Load metadata from the assembly
+				metadata.LoadFromAssembly(asm);
+				// Look for plugins
 				foreach (var candidate in types)
 				{
 					if (typeof(IPlugin).IsAssignableFrom(candidate))
 					{
+						// Make sure we have metadata available
+						if (metadata.GetDescription(candidate) == null)
+						{
+							this.Log().Warn("Plugin '{0}.{1}' does not provide a description.", candidate.Namespace, candidate.Name);
+							continue;
+						}
+						if (typeof(IConfigurable).IsAssignableFrom(candidate) && (metadata.GetConfiguration(candidate) == null))
+						{
+							this.Log().Warn("Plugin '{0}.{1}' is marked as configurable but does not provide a configuration description.", candidate.Namespace, candidate.Name);
+							continue;
+						}
+						// Go ahead and try to load it
 						try
 						{
 							this.Log().Debug("Creating plugin '{0}.{1}'", candidate.Namespace, candidate.Name);
