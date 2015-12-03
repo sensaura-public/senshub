@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<metadata defaultLang="en">
+  <class name="Plugin">
+    <description>
+      <icon image="slack.png"/>
+      <displayname lang="en">Slack Chat</displayname>
+      <shortdescription lang="en">Send messages to a specific channel in a Slack team.</shortdescription>
+      <longdescription lang="en">
+        This plugin provides an Action that allows you to send messages received on a specific topic
+        to a channel in your slack team. You will require a Slack account and a valid API token.
+      </longdescription>
+    </description>
+  </class>
+</metadata>
