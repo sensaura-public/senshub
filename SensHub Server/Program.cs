@@ -73,6 +73,7 @@ namespace SensHub.Server
             Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
+			plugins.AddPlugin(new MqttPlugin());
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
 			plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();

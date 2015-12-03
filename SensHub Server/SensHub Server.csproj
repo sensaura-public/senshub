@@ -36,6 +36,10 @@
       <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="M2Mqtt.Net, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\M2Mqtt.4.2.0.1\lib\net45\M2Mqtt.Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Splat, Version=1.6.2.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Splat.1.6.2\lib\Net45\Splat.dll</HintPath>
       <Private>True</Private>
@@ -63,6 +67,7 @@
     <Compile Include="Logger.cs" />
     <Compile Include="MetadataManager.cs" />
     <Compile Include="Mqtt\MessageBus.cs" />
+    <Compile Include="Mqtt\MqttPlugin.cs" />
     <Compile Include="Mqtt\Topic.cs" />
     <Compile Include="ObjectPacker.cs" />
     <Compile Include="PluginHost.cs" />

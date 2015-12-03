@@ -2,9 +2,6 @@
 <metadata defaultLang="en">
   <class name="Program">
     <configuration>
-      <value name="mqttServer" type="StringValue" default="localhost">
-        <text lang="en">The IP address or host name of the MQTT server to bind to.</text>
-      </value>
       <value name="logLevel" type="OptionList" default="Warn">
         <text lang="en">The minimimum logging level. Only messages of this severity or above will be logged.</text>
         <selection name="Error">
@@ -29,4 +26,26 @@
       </value>
     </configuration>
   </class>
+  <class name="Mqtt.MqttPlugin">
+    <description>
+      <icon image="mqtt.png"/>
+      <displayname lang="en">Mqtt Integration</displayname>
+      <shortdescription lang="en">Duplicate SensHub messages on a MQTT server.</shortdescription>
+      <longdescription lang="en">
+        This plugin allows messages on the SensHub message bus to be replicated on a MQTT server
+        and vice-versa. Use of MQTT provides maximum flexibility.
+      </longdescription>
+    </description>
+    <configuration>
+      <value name="server" type="StringValue" default="localhost">
+        <text lang="en">The IP address or host name of the MQTT server to bind to.</text>
+      </value>
+      <value name="topic" type="StringValue" default="senshub">
+        <text lang="en">The MQTT topic tree to use for messages.</text>
+      </value>
+      <value name="identity" type="StringValue" default="">
+        <text lang="en">The SensHub server identity string.</text>
+      </value>
+    </configuration>
+    </class>
 </metadata>

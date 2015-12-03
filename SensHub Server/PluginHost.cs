@@ -116,6 +116,25 @@ namespace SensHub.Server
 			{
 				this.Log().Error("Failed to initialise plugin - {0}", ex.ToString());
 			}
+			if (initialised)
+			{
+				IConfigurable configurable = m_plugin as IConfigurable;
+				if (configurable != null)
+				{
+					// Get the configuration for this plugin
+					MetadataManager metadata = Locator.Current.GetService<MetadataManager>();
+					ObjectConfiguration description = metadata.GetConfiguration(m_plugin.GetType());
+					ConfigurationImpl configuration = ConfigurationImpl.Load(m_plugin.UUID.ToString() + ".json", description);
+					try
+					{
+						configurable.ApplyConfiguration(configuration);
+					}
+					catch (Exception ex)
+					{
+						this.Log().Error("Unable to apply configuration to plugin - {0}.", ex.ToString());
+					}
+				}
+			}
 			return initialised;
 		}
 		#endregion

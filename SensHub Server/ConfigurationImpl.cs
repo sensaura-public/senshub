@@ -34,7 +34,7 @@ namespace SensHub.Server
             return result;
         }
 
-        public void Save()
+        public override void Save()
         {
             // Get a JSON version of the current configuration
             string json = ObjectPacker.Pack(this);

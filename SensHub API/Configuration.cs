@@ -9,7 +9,7 @@ namespace SensHub.Plugins
 	/// <summary>
 	/// Represents a configuration.
 	/// </summary>
-	public class Configuration : IPackable, IDictionary<string, object>
+	public abstract class Configuration : IPackable, IDictionary<string, object>
 	{
 		private Dictionary<string, object> m_values;
 		private Dictionary<string, ConfigurationValue> m_defaults;
@@ -60,6 +60,11 @@ namespace SensHub.Plugins
 				m_values.Clear();
 			}
 		}
+
+		/// <summary>
+		/// Save the configuration
+		/// </summary>
+		public abstract void Save();
 
 		#region Implementation of IPackable
 		/// <summary>
