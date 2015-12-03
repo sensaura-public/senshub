@@ -60,7 +60,7 @@ namespace SensHub.Server
 				// Set up the targets
 				FileSystem fs = Locator.Current.GetService<FileSystem>();
 				fs = (FileSystem)fs.OpenFolder("logs");
-				string logFile = Path.Combine(fs.BasePath, String.Format("senshub- {0:yyyy-MM-dd}.log", DateTime.Now));
+				string logFile = Path.Combine(fs.BasePath, String.Format("senshub-{0:yyyy-MM-dd}.log", DateTime.Now));
 				StreamWriter output = new StreamWriter(File.Open(logFile, FileMode.Append, FileAccess.Write, FileShare.Read));
 				IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
 				ITopic logBase = messageBus.Private.Create("server/notifications");
