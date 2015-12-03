@@ -34,16 +34,6 @@ namespace SensHub.Server
 			}
 		}
 
-        static ConfigurationValue[] ServerConfiguration =
-        {
-            new ConfigurationValue("mqttServer", ConfigurationValue.ValueType.StringValue, "localhost",
-                "Address of the MQTT server to use."),
-            new ConfigurationValue("httpPort", ConfigurationValue.ValueType.NumericValue, 8000,
-                "Set the port that the HTTP server will listen on."),
-			new ConfigurationValue("logLevel", ConfigurationValue.ValueType.StringValue, LogLevel.Warn.ToString(),
-				"The logging level for the server. Levels greater than or above this level will be logged.")
-        };
-
 		static void Main(string[] args)
 		{
 			// Set up the logger
@@ -69,7 +59,7 @@ namespace SensHub.Server
             // Load the server configuration and make it globally available
             ConfigurationImpl serverConfig = ConfigurationImpl.Load(
                 "SensHub.json",
-                new List<ConfigurationValue>(ServerConfiguration).AsReadOnly()
+                metadata.GetConfiguration<Program>()
                 );
             Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
 			// Set up the MessageBus

@@ -67,6 +67,11 @@ namespace SensHub.Server
 
 		}
 
+		/// <summary>
+		/// Load metadata from a stream.
+		/// </summary>
+		/// <param name="baseName"></param>
+		/// <param name="input"></param>
 		public void LoadFromStream(string baseName, Stream input)
 		{
 			this.Log().Debug("Loading metadata for assembly '{0}'", baseName);
@@ -114,6 +119,10 @@ namespace SensHub.Server
 
 		}
 
+		/// <summary>
+		/// Load metadata from an embedded resource in an assembly
+		/// </summary>
+		/// <param name="assembly"></param>
 		public void LoadFromAssembly(Assembly assembly)
 		{
 			Stream source = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Resources.metadata.xml");
@@ -123,6 +132,32 @@ namespace SensHub.Server
 				return;
 			}
 			LoadFromStream(assembly.GetName().Name, source);
+		}
+
+		/// <summary>
+		/// Get a named configuration
+		/// </summary>
+		/// <param name="className"></param>
+		/// <returns></returns>
+		public ObjectConfiguration GetConfiguration(string className)
+		{
+			ObjectConfiguration config;
+			if (!m_configurations.TryGetValue(className, out config))
+				return null;
+			return config;
+		}
+
+		/// <summary>
+		/// Get the configuration for a specific type.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
+		public ObjectConfiguration GetConfiguration<T>()
+		{
+			string className = String.Format("{0}.{1}",
+				typeof(T).Namespace,
+				typeof(T).Name);
+			return GetConfiguration(className);
 		}
 
 		#region XML Parser Helpers
