@@ -1,180 +1,130 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <!--Import materialize.css-->
-  <link type="text/css" rel="stylesheet" href="css/materialize.css"  media="screen,projection"/>
-  <link type="text/css" rel="stylesheet" href="css/senshub.css"  media="screen,projection"/>
-  <!-- TODO: Move icons to local storage? -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <!--Let browser know website is optimized for mobile-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-</head>
+  <html>
+    <head>
+      <!--Import Google Icon Font-->
+      <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <!--Import materialize.css-->
+      <link type="text/css" rel="stylesheet" href="css/materialize.css"  media="screen,projection"/>
+      <link type="text/css" rel="stylesheet" href="css/sensaura.css"  media="screen,projection"/>
+      <!--Let browser know website is optimized for mobile-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </head>
 
-<body>
-  <!-- Navbar -->
-  <div class="navbar-fixed">
-    <nav>
-      <div class="nav-wrapper">
-        <a href="#!" class="brand-logo">Sensaura</a>
-        <ul id="navbar" class="right hide-on-med-and-down">
-          <li id="select-home"><a href="#" onclick="selectPage('home')">Home</a></li>
-          <li id="select-dashboards"><a href="#" onclick="selectPage('dashboards')">Dashboards</a></li>
-          <li id="select-notepad"><a href="#" onclick="selectPage('notepad')">Notepad</a></li>
-          <li id="select-rules"><a href="#" onclick="selectPage('rules')">Rules</a></li>
-          <li id="select-sources"><a href="#" onclick="selectPage('sources')">Sources</a></li>
-          <li><a href="#"><i class="medium material-icons">settings</i></a></li>
-        </ul>
-      </div>
-    </nav>
-  </div>
-  <div id="page-home" class="page sensaura-text-secondary-text">
-    Home
-  </div>
-  <div id="page-dashboards" class="page sensaura-text-secondary-text">
-    Dashboards
-  </div>
-  <div id="page-notepad" class="page sensaura-text-secondary-text">
-    <!-- Action button -->
-    <div class="fixed-action-btn" style="bottom: 45px; right: 24px;">
-      <a class="btn-floating btn-large">
-        <i class="large material-icons">add</i>
-      </a>
-      <ul>
-        <li><a class="btn-floating red tooltipped" data-position="left" data-delay="50" data-tooltip="Worklog"><i class="material-icons">event</i></a></li>
-        <li><a class="btn-floating green tooltipped" data-position="left" data-delay="50" data-tooltip="Page"><i class="material-icons">description</i></a></li>
-      </ul>
-    </div>
-    <!-- Content -->
-    <div class="row">
-      <div class="col s4">
-        <div>
-          <ul class="tabs">
-            <li class="tab"><a href="#notepad-history" class="active">History</a></li>
-            <li class="tab"><a href="#notepad-worklog">Worklog</a></li>
-            <li class="tab"><a href="#notepad-search">Search</a></li>
-          </ul>
-        </div>
-        <div class="padding-tiny"><!-- Spacing --></div>
-        <div id="notepad-history">
-          <div class="card">
-            <div class="card-content">
-              <div class="right-align">
-                <a class="secondary-color-text" href='#'><i class="tiny material-icons">mode_edit</i></a>
-                <a class="secondary-color-text" href='#'><i class="tiny material-icons">info</i></a>
+    <body>
+      <!--Import jQuery before materialize.js-->
+      <script type="text/javascript" src="js/jquery.js"></script>
+      <script type="text/javascript" src="js/materialize.js"></script>
+      <script type="text/javascript" src="js/sensaura.js"></script>
+      <!-- Navigation -->
+      <header class="navbar-fixed">
+        <nav>
+          <div class="nav-wrapper">
+            <span class="brand-logo hide-on-med-and-down">Logo</span>
+            <ul class="right">
+              <li id="home_button"><a href="#" onclick='setActivePage("home")'>Home</a></li>
+              <li id="actions_button"><a href="#" onClick='setActivePage("actions")'>Actions</a></li>
+              <li id="sources_button"><a href="#" onClick='setActivePage("sources")'>Sources</a></li>
+              <li id="plugins_button"><a href="#" onClick='setActivePage("plugins")'>Plugins</a></li>
+              <li><a href="#"><i class="material-icons grey-text">notifications</i></a></li>
+              <li><a href="#"><i class="material-icons">settings</i></a></li>
+            </ul>
+          </div>
+        </nav>
+      </header>
+      <!-- Content -->
+      <main>
+        <div id="loader" class="row">
+          <div class="col s4 offset-s4 z-depth-2 grey lighten-3" style="margin-top: 8em">
+            <div class="padding row" style="margin-bottom: auto">
+              <div class="col s3"><img class="responsive" src="img/loading.gif"></div>
+              <div class="col s9">
+                <div class="padding-small">Please wait while we get things ready.</div>
               </div>
-              <p>This is the sidebar page. You should edit this page to contain links
-              to pages you would like to be always available.</p>
+              <form class="col s12">
+                <div class="row" style="margin-bottom: auto">
+                  <div class="col s12">
+                    This server requires authentication.
+                  </div>
+                  <div class="input-field col s9">
+                    <input placeholder="Placeholder" id="password" type="password">
+                    <label for="first_name">Password</label>
+                  </div>
+                  <div class="input-field col s3">
+                    <a class="waves-effect waves-light btn">Login</a>
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
         </div>
-        <div id="notepad-worklog">
-          <!-- Filtering -->
-          <div class="z-depth-1">
-            <div class="row primary-color white-text valign-wrapper">
-              <div class="valign col s6">Filter: None</div>
-              <div class="valign col s6 right-align"><a href="#"><i class="small material-icons white-text">arrow_drop_down</i></a></div>
+        <div id="home" class="row hidden padding-small">
+          <div class="col s4">
+            <div class="padding-small z-depth-2">
+              Side notifications
             </div>
-            <form id="worklog-filter" action="#" class="padding-tiny sensaura-dropdown-panel">
-              <input placeholder="tags" id="worklog-tags" type="text" />
-              <input type="checkbox" id="worklog-tags-all" class="right" />
-              <label for="worklog-tags-all">Require All Tags</label>
-              <div class="row">
-                <div class="col s6">
-                  <input id="worklog-after-date" type="date" class="datepicker" />
-                  <label for="worklog-after-date">After</label>
-                </div>
-                <div class="col s6">
-                  <input id="worklog-before-date" type="date" class="datepicker" />
-                  <label for="worklog-before-date">Before</label>
-                </div>
-              </div>
+          </div>
+          <div class="col s8">
+            <div class="padding-small z-depth-2">
+              Subscribe and send messages
+            </div>
+          </div>
+          <div class="fixed-action-btn" style="bottom: 60px; right: 32px;">
+            <a class="btn-floating btn-large red"><i class="large material-icons">add</i></a>
+          </div>
+        </div>
+        <div id="actions" class="row hidden padding-small">
+          <!-- Single action -->
+          <div class="col s4">
+            <div class="z-depth-2 row padding-small margin-vertical">
+              <div class="valign-wrapper"><img class="valign" src="img/icons/myicon.png" width="48px" height="48px"><h2 class="valign truncate margin-none-vertical margin-small-horizontal">Action Title</h2></div>
+              <div>This is a description of the action. It is provided by the user when they create it.</div>
               <div class="right-align">
-                <a href="#" class="btn-flat waves-effect waves-light">Clear</a>
-                <a href="#" class="btn-flat waves-effect waves-light">Apply</a>
+                <a href="#"><i class="material-icons">info</i></a>
+                <a href="#"><i class="material-icons">edit</i></a>
+                <a href="#"><i class="material-icons">delete</i></a>
               </div>
-            </form>
+            </div>
           </div>
-          <!-- Worklog Entries -->
-          <ul class="collection">
-            <li class="collection-item avatar">
-              <img src="samples/avatar_arduino.jpg" alt="" class="circle">
-              <div class="title">Title<span class="right timestamp">Jan 03, 12:15PM</span></div>
-              <p>First Line <br>
-                 Second Line
-              </p>
-            </li>
-            <li class="collection-item avatar">
-              <img src="samples/avatar_default.jpg" alt="" class="circle">
-              <div class="title">Title<span class="right timestamp">Jan 03, 12:15PM</span></div>
-              <p>This is a sample worklog entry with longer content and an
-              <a href="#">embedded link</a>
-              </p>
-            </li>
-            <li class="collection-item avatar">
-              <img src="samples/avatar_raspberry_pi.png" alt="" class="circle">
-              <div class="title">Title<span class="right timestamp">Jan 03, 12:15PM</span></div>
-              <img class="responsive-img" src="samples/screenshot.png">
-              <p>This is a sample worklog entry with an attached image.
-              </p>
-            </li>
-          </ul>
-        </div>
-        <div id="notepad-search">
-          <!-- Search and create -->
-          <div class="input-field">
-            <i class="small material-icons prefix">search</i>
-            <input placeholder="Search" id="page_name" type="text" class="validate">
+          <!-- FAB for adding new actions -->
+          <div class="fixed-action-btn" style="bottom: 60px; right: 32px;">
+            <a class="btn-floating btn-large red"><i class="large material-icons">add</i></a>
           </div>
         </div>
-      </div>
-      <div class="col s8">
-        <!-- Content cards  -->
-        <div class="card">
-          <div class="card-content">
-            <span class="right">
-              <a class="secondary-color-text" href='#'><i class="tiny material-icons">mode_edit</i></a>
-              <a class="secondary-color-text" href='#'><i class="tiny material-icons">info</i></a>
-            </span>
-            <span class="card-title sensaura-text-primary-text">Welcome</span>
-            <p>This is the welcome page. It will be the first page displayed when you first
-            open the Notepad. Use it to provide commonly used links or utilities.</p>
+        <div id="sources" class="row hidden padding-small">
+          <!-- Single source -->
+          <div class="col s4">
+            <div class="z-depth-2 row padding-small margin-vertical">
+              <div class="valign-wrapper"><img class="valign" src="img/icons/myicon.png" width="48px" height="48px"><h2 class="valign truncate margin-none-vertical margin-small-horizontal">Source Title</h2></div>
+              <div>This is a description of the source. It is provided by the user when they create it.</div>
+              <div class="right-align">
+                <a href="#"><i class="material-icons">info</i></a>
+                <a href="#"><i class="material-icons">edit</i></a>
+                <a href="#"><i class="material-icons">delete</i></a>
+              </div>
+            </div>
+          </div>
+          <div class="fixed-action-btn" style="bottom: 60px; right: 32px;">
+            <a class="btn-floating btn-large red"><i class="large material-icons">add</i></a>
           </div>
         </div>
-        <div class="card">
-          <div class="card-content">
-            <span class="right">
-              <a href='#'><i class="tiny material-icons">mode_edit</i></a>
-              <a href='#'><i class="tiny material-icons">info</i></a>
-            </span>
-            <span class="card-title sensaura-text-primary-text">My Page</span>
-            <p>This is a simple custom page. You can make as many as you like and link them together. A
-            page can contain other pages or worklog entries to build up details about a project.</p>
+        <div id="plugins" class="row hidden padding-small">
+          <!-- Single plugin -->
+          <div class="col s4">
+            <div class="z-depth-2 row padding-small margin-vertical">
+              <div class="valign-wrapper"><img class="valign" src="img/icons/myicon.png" width="48px" height="48px"><h2 class="valign truncate margin-none-vertical margin-small-horizontal">Source Title</h2></div>
+              <div>This is a description of the source. It is provided by the user when they create it.</div>
+              <div class="right-align">
+                <a href="#"><i class="material-icons">info</i></a>
+                <a href="#"><i class="material-icons">edit</i></a>
+                <a href="#"><i class="material-icons">delete</i></a>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-content">
-            <span class="right">
-              <a href='#'><i class="tiny material-icons">mode_edit</i></a>
-              <a href='#'><i class="tiny material-icons">info</i></a>
-            </span>
-            <span class="card-title sensaura-text-primary-text">My Project</span>
-            <p>The idea is to build up pages for a project and automatically include worklogs related
-            to the project as well as data from sensors (either a snapshot or dynamic) to provide
-            additional information.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="page-sources" class="page sensaura-text-secondary-text">
-    Sources
-  </div>
-  <div id="page-rules" class="page sensaura-text-secondary-text">
-    Rules
-  </div>
-  <!--Import jQuery before materialize.js-->
-  <script type="text/javascript" src="js/jquery.js"></script>
-  <script type="text/javascript" src="js/materialize.js"></script>
-  <script type="text/javascript" src="js/senshub.js"></script>
-</body>
-</html>
+      </main>
+      <!-- Footer -->
+      <footer class="primary-color padding-small right-align white-text italic">
+        SensHub Server Version <span id="version">0.1.0</span>. Copyright &copy; 2015, Shane Gough.
+      </footer>
+    </body>
+  </html>

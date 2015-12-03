@@ -1,55 +1,84 @@
-.page {
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+.border {
+  border: 1px solid black;
+  }
+  
+.italic {
+  font-style: italic;
+  }
+  
+.hidden {
   display: none;
   }
 
-
-// Colors (see https://www.materialpalette.com/blue-grey/light-blue)
-.sensaura-dark-primary {
-  background-color: #455a64 !important; }
-.sensaura-dark-primary-text {
-  color: #455a64 !important; }
-.sensaura-primary {
-  background-color: #607d8b !important; }
-.sensaura-primary-text {
-  color: #607d8b !important; }
-.sensaura-light-primary {
-  background-color: #cfd8dc !important; }
-.sensaura-light-primary-text {
-  color: #cfd8dc !important; }
-.sensaura-icons {
-  background-color: #ffffff !important; }
-.sensaura-icons-text {
-  color: #ffffff !important; }
-.sensaura-accent {
-  background-color: #03a9f4 !important; }
-.sensaura-accent-text {
-  color: #03a9f4 !important; }
-.sensaura-text-primary {
-  background-color: #212121 !important; }
-.sensaura-text-primary-text {
-  color: #212121 !important; }
-.sensaura-text-secondary {
-  background-color: #727272 !important; }
-.sensaura-text-secondary-text {
-  color: #727272 !important; }
-.sensaura-divider {
-  background-color: #b6b6b6 !important; }
-.sensaura-divider-text {
-  color: #b6b6b6 !important; }
-
-.padding-tiny {
-  padding: 0.25em;
+.padding-none {
+  padding: 0;
+  margin: 0;
   }
-
+  
 .padding-small {
   padding: 0.5em;
   }
-
-.padding-1 {
+  
+.padding {
   padding: 1em;
   }
-
-.sensaura-dropdown-panel {
-  display: none;
+  
+.padding-large {
+  padding: 2em;
   }
 
+.margin-auto {
+  margin: auto;
+  }
+  
+.margin-none {
+  margin: 0;
+  }
+  
+.margin-none-vertical {
+  margin-top: 0;
+  margin-bottom: 0;
+  }
+  
+.margin-small {
+  margin: 0.5em;
+  }
+
+.margin-small-vertical {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  }
+  
+.margin-small-horizontal {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  }
+  
+.margin {
+  margin: 1em;
+  }
+  
+.margin-vertical {
+  margin-top: 1em;
+  margin-bottom: 1em;
+  }
+  
+.margin-large {
+  margin: 2em;
+  }
+
+.margin-large-vertical {
+  margin-top: 2em;
+  margin-bottom: 2em;
+  }
+  
