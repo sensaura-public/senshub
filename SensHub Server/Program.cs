@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Reflection;
 using System.Collections.Generic;
 using SensHub.Plugins;
 using SensHub.Server.Http;
@@ -61,6 +62,10 @@ namespace SensHub.Server
 			// Make it globally available.
 			FileSystem fs = new FileSystem(options.StorageDirectory);
 			Locator.CurrentMutable.RegisterConstant(fs, typeof(FileSystem));
+			// Set up the metadata manager and load the metadata for this assembly
+			MetadataManager metadata = new MetadataManager();
+			Locator.CurrentMutable.RegisterConstant(metadata, typeof(MetadataManager));
+			metadata.LoadFromAssembly(Assembly.GetExecutingAssembly());
             // Load the server configuration and make it globally available
             ConfigurationImpl serverConfig = ConfigurationImpl.Load(
                 "SensHub.json",

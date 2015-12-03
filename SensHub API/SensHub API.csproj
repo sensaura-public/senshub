@@ -38,12 +38,13 @@
     <Compile Include="ConfigurationValue.cs" />
     <Compile Include="IConfigurable.cs" />
     <Compile Include="IDescribed.cs" />
-    <Compile Include="IDescribedEx.cs" />
     <Compile Include="IMessageBus.cs" />
     <Compile Include="ISubscriber.cs" />
     <Compile Include="ITopic.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageBuilder.cs" />
+    <Compile Include="ObjectConfiguration.cs" />
+    <Compile Include="IObjectDescription.cs" />
     <Compile Include="Topics.cs" />
     <Compile Include="Utilities\BaseDictionary.cs" />
     <Compile Include="Utilities\Enumeration.cs" />

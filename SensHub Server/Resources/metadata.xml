@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<metadata defaultLang="en">
+  <class name="Program">
+    <configuration>
+      <value name="mqttServer" type="StringValue" default="localhost">
+        <text lang="en">The IP address or host name of the MQTT server to bind to.</text>
+      </value>
+      <value name="logLevel" type="OptionList" default="Warn">
+        <text lang="en">The minimimum logging level. Only messages of this severity or above will be logged.</text>
+        <selection name="Error">
+          <display lang="en">Error messages.</display>
+        </selection>
+        <selection name="Warn">
+          <display lang="en">Warning messages.</display>
+        </selection>
+        <selection name="Info">
+          <display lang="en">Informational messages.</display>
+        </selection>
+        <selection name="Debug">
+          <display lang="en">Debugging messages.</display>
+        </selection>
+      </value>
+      <value name="httpPort" type="NumericValue" default="8000">
+        <text lang="en">The port number to listen on for HTTP requests.</text>
+      </value>
+    </configuration>
+  </class>
+</metadata>

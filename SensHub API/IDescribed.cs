@@ -15,19 +15,5 @@ namespace SensHub.Plugins
 	/// </summary>
 	public interface IDescribed
 	{
-		/// <summary>
-		/// Provide a short name for the class.
-		/// 
-		/// This name is used as a title for things like configuration and
-		/// property pages.
-		/// </summary>
-		string DisplayName { get; }
-
-		/// <summary>
-		/// Provide a more detailed description of the class.
-		/// 
-		/// This is a multi line description used to provide more detail.
-		/// </summary>
-		string Description { get; }
 	}
 }

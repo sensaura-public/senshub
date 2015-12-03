@@ -61,6 +61,7 @@
     <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="MetadataManager.cs" />
     <Compile Include="Mqtt\MessageBus.cs" />
     <Compile Include="Mqtt\Topic.cs" />
     <Compile Include="ObjectPacker.cs" />
@@ -98,7 +99,9 @@
       <Name>SensHub API</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\metadata.xml" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\mimetypes.txt" />
     <EmbeddedResource Include="Resources\Site\index.html" />
