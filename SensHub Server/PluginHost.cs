@@ -137,6 +137,22 @@ namespace SensHub.Server
 			}
 			return initialised;
 		}
+
+		/// <summary>
+		/// Shutdown the plugin
+		/// </summary>
+		public void ShutdownPlugin()
+		{
+			try
+			{
+				this.Log().Debug("Shutting down plugin {0}", m_plugin.GetType().Name);
+				m_plugin.Shutdown();
+			}
+			catch (Exception ex)
+			{
+				this.Log().Error("Failed to shutdown plugin {0} - {1}", m_plugin.GetType().Name, ex.Message);
+			}
+		}
 		#endregion
 
 	}

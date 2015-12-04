@@ -84,6 +84,7 @@ namespace SensHub.Server
 			System.Console.WriteLine("Server running - press any key to quit.");
 			messageBus.Run();
 			// Clean up
+			plugins.ShutdownPlugins();
             httpServer.Stop();
         }
 	}

@@ -16,7 +16,7 @@ namespace SensHub.Server
 	internal class PluginManager : IEnableLogger
 	{
 		private Dictionary<Guid, IPlugin> m_pluginsAvailable = new Dictionary<Guid, IPlugin>();
-		private Dictionary<Guid, IPluginHost> m_pluginsEnabled = new Dictionary<Guid, IPluginHost>();
+		private Dictionary<Guid, PluginHost> m_pluginsEnabled = new Dictionary<Guid, PluginHost>();
 
 		/// <summary>
 		/// Add an individual to the master list.
@@ -141,6 +141,20 @@ namespace SensHub.Server
 							m_pluginsEnabled[uuid] = host;
 						}
 					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Shutdown all the plugins
+		/// </summary>
+		public void ShutdownPlugins()
+		{
+			lock (m_pluginsEnabled)
+			{
+				foreach (Guid uuid in m_pluginsAvailable.Keys)
+				{
+					m_pluginsEnabled[uuid].ShutdownPlugin();
 				}
 			}
 		}
