@@ -2,6 +2,9 @@
 <metadata defaultLang="en">
   <class name="Program">
     <configuration>
+      <value name="password" type="StringValue" default="">
+        <text lang="en">Set the system password.</text>
+      </value>
       <value name="logLevel" type="OptionList" default="Warn">
         <text lang="en">The minimimum logging level. Only messages of this severity or above will be logged.</text>
         <selection name="Error">

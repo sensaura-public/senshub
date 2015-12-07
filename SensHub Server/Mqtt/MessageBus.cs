@@ -15,13 +15,21 @@ namespace SensHub.Server.Mqtt
 		/// <summary>
 		/// Holds all the information needed to process a message.
 		/// </summary>
-		private struct QueuedMessage
+		private class QueuedMessage
 		{
-			public ITopic Topic;
-			public ISet<ISubscriber> Subscribers;
-			public object Source;
-			public Message Payload;
-		}
+			public ITopic Topic { get; private set; }
+			public ISet<ISubscriber> Subscribers { get; private set; }
+            public object Source { get; private set; }
+            public Message Payload { get; private set; }
+
+            public QueuedMessage(ITopic topic, ISet<ISubscriber> subscribers, object source, Message payload)
+            {
+                Topic = topic;
+                Subscribers = subscribers;
+                Source = source;
+                Payload = payload;
+            }
+        }
 
 		/// <summary>
 		/// A blocking queue for processing messages in a linear fashion.
@@ -217,19 +225,15 @@ namespace SensHub.Server.Mqtt
 
 		public void Publish(ITopic topic, Message message, object source = null)
 		{
+            if (topic == null)
+                throw new ArgumentNullException();
 			m_messagesReceived++;
 			// Get the set of subscribers
 			ISet<ISubscriber> subscribers = GetSubscribersForTopic(topic);
 			if (subscribers.Count == 0)
 				return; // No one is interested
-			// Add it to the queue for later processing
-			m_queue.Add(new QueuedMessage()
-				{
-					Topic = topic,
-					Payload = message,
-					Source = source,
-					Subscribers = subscribers
-				});
+            // Add it to the queue for later processing
+            m_queue.Add(new QueuedMessage(topic, subscribers, source, message));
 		}
 		#endregion
 	}

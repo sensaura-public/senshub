@@ -223,8 +223,14 @@ namespace SensHub.Server.Http
         [RpcCall("Authenticate", AuthenticationRequired = false)]
         public bool Authenticate(string password)
         {
-			// TODO: Implement this (password in server config?)
-            return true;
+            Configuration serverConfig = Locator.Current.GetService<Configuration>();
+            string systemPassword = serverConfig["password"].ToString();
+            if (password == systemPassword)
+            {
+                Session.Authenticated = true;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>

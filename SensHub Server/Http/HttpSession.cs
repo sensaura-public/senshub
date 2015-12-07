@@ -27,6 +27,8 @@ namespace SensHub.Server.Http
 			/// <param name="payload"></param>
 			public MessageInfo(ITopic topic, Message payload)
 			{
+                if (topic == null)
+                    System.Console.WriteLine("Queue message with null topic.");
 				Timestamp = DateTime.Now;
 				Topic = topic;
 				Payload = payload;
