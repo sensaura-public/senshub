@@ -37,12 +37,24 @@
         <div id="loader" class="row">
           <div class="col s4 offset-s4 z-depth-2 grey lighten-3" style="margin-top: 8em">
             <div class="padding row" style="margin-bottom: auto">
-              <div class="col s3"><img class="responsive" src="img/loading.gif"></div>
-              <div class="col s9">
-                <h2 class="padding-small margin-none">Please wait while we get things ready.</h2>
+              <div id="splash-loading" class="col s12 row">
+                <div class="col s3">
+                  <img class="responsive" src="img/loading.gif">
+                </div>
+                <div class="col s9">
+                  <span class="title">Please wait while we get things ready.</span>
+                </div>
               </div>
-              <form id="login" class="col s12 hidden">
-                <div class="row" style="margin-bottom: auto">
+              <div id="splash-error" class="col s12 row hidden">
+                <div class="col s3">
+                  <img class="responsive" src="img/error.png">
+                </div>
+                <div class="col s9">
+                  <span id="splash-error-message" class="title"></span>
+                </div>
+              </div>
+              <div id="splash-login" class="col s12 row hidden">
+                <form>
                   <div id="login-message" class="col s12">
                     This server requires authentication.
                   </div>
@@ -53,8 +65,8 @@
                   <div class="input-field col s3">
                     <a class="waves-effect waves-light btn" onClick='serverInit($("#password").val())'>Login</a>
                   </div>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>

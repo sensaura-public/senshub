@@ -65,13 +65,11 @@ function internalDispatch(topic, message) {
 //---------------------------------------------------------------------------
 
 function shApiFailure(method, onFailure) {
-  alert("Method '" + method + "' failed.");
   onFailure(method, "Network error.");
   }
 
 function shApiSuccess(method, data, onSuccess, onFailure) {
   if(data.failed) {
-    alert("Method '" + method + "' failed - " + data.failureMessage);
     onFailure(method, data.failureMessage);
     return;
     }
@@ -91,10 +89,18 @@ function shAPI(method, args, onSuccess, onFailure) {
       parameters: args,
       }),
     success: function(data) { shApiSuccess(method, data, onSuccess, onFailure); },
-    failure: function() { shApiFailure(method, onFailure); },
+    error: function(xhr, message, exception) { shApiFailure(method, onFailure); },
     dataType: "json",
     contentType: "application/json"
     });
+  }
+
+function startupError(message) {
+  if (!$("#splash-error").is(":visible")) {
+    $("#splash-error-message").text("An error occurred while connecting to the server.");
+    $("#splash-loading").hide();
+    $("#splash-error").show();
+    }
   }
 
 function getServerState() {
@@ -104,13 +110,15 @@ function getServerState() {
   //   Register for errors and warnings
   //   Display the home page
   var callCount = 3;
-  var onSuccess = function(method, data, parentSuccess) {
-    parentSuccess(method, data);
+  var onSuccess = function(method, data) {
     callCount = callCount - 1;
     if (callCount == 0)
       setActivePage("home");
     }
   var onFailure = function(method, message) {
+    if (!$("#splash-error").is(":visible")) {
+      startupError(message);
+      }
     }
   // Get our server state
   shAPI(
@@ -143,7 +151,7 @@ function serverInit(password) {
     },
     function(method, result) {
       if(!result) {
-        $("#login").slideDown();
+        $("#splash-login").slideDown();
         if(password!=="")
           $("#login-message").text("Authentication failed. Please check your password.");
         }
@@ -151,6 +159,7 @@ function serverInit(password) {
         getServerState();
       },
     function(method, message) {
+      startupError(message);
       }
     );
   }
