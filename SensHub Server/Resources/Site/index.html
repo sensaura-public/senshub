@@ -13,6 +13,7 @@
     <body>
       <!--Import jQuery before materialize.js-->
       <script type="text/javascript" src="js/jquery.js"></script>
+      <script type="text/javascript" src="js/jqueryjson.js"></script>
       <script type="text/javascript" src="js/materialize.js"></script>
       <script type="text/javascript" src="js/sensaura.js"></script>
       <!-- Navigation -->
@@ -38,11 +39,11 @@
             <div class="padding row" style="margin-bottom: auto">
               <div class="col s3"><img class="responsive" src="img/loading.gif"></div>
               <div class="col s9">
-                <div class="padding-small">Please wait while we get things ready.</div>
+                <h2 class="padding-small margin-none">Please wait while we get things ready.</h2>
               </div>
-              <form class="col s12">
+              <form id="login" class="col s12 hidden">
                 <div class="row" style="margin-bottom: auto">
-                  <div class="col s12">
+                  <div id="login-message" class="col s12">
                     This server requires authentication.
                   </div>
                   <div class="input-field col s9">
@@ -50,7 +51,7 @@
                     <label for="first_name">Password</label>
                   </div>
                   <div class="input-field col s3">
-                    <a class="waves-effect waves-light btn">Login</a>
+                    <a class="waves-effect waves-light btn" onClick='serverInit($("#password").val())'>Login</a>
                   </div>
                 </div>
               </form>

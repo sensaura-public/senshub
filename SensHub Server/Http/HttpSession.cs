@@ -54,14 +54,15 @@ namespace SensHub.Server.Http
 		/// 
 		/// Reading this property clears the list.
 		/// </summary>
-		public List<MessageInfo> Messages
+		public List<IReadOnlyDictionary<string, object>> Messages
 		{
 			get
 			{
-				List<MessageInfo> result = new List<MessageInfo>();
+				List<IReadOnlyDictionary<string, object>> result = new List<IReadOnlyDictionary<string, object>>();
 				lock (m_messages)
 				{
-					result.AddRange(m_messages);
+					foreach (MessageInfo info in m_messages)
+						result.Add(info.Pack());
 					m_messages.Clear();
 				}
 				return result;

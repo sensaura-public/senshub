@@ -208,7 +208,9 @@ namespace SensHub.Server.Http
                         callResult["failureMessage"] = ex.Message;
                 }
             }
-            // TODO: Add any pending messages for the session
+            // Add any pending messages for the session
+			callResult["messages"] = session.Messages;
+			// Finally we can send back the response
             return JsonParser.ToJson(callResult);
         }
 
@@ -221,7 +223,8 @@ namespace SensHub.Server.Http
         [RpcCall("Authenticate", AuthenticationRequired = false)]
         public bool Authenticate(string password)
         {
-            return false;
+			// TODO: Implement this (password in server config?)
+            return true;
         }
 
         /// <summary>

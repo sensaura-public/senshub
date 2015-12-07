@@ -22,6 +22,10 @@ namespace SensHub.Server
 				HelpText = "Set the storage directory.")]
 			public string StorageDirectory { get; set; }
 
+			[Option('w', "website",
+				HelpText = "Use a static web site directory instead of the built in version.")]
+			public string WebDirectory { get; set; }
+
 			[ParserState]
 			public IParserState LastParserState { get; set; }
 
@@ -68,8 +72,13 @@ namespace SensHub.Server
             // Initialise logging now we have a server configuration
 			logger.Enable();
             // Set up the  HttpServer
-            FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
-            HttpServer httpServer = new HttpServer(sitePath.BasePath);
+			string webSite = options.WebDirectory;
+			if (webSite == null)
+			{
+				FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
+				webSite = sitePath.BasePath;
+			}
+            HttpServer httpServer = new HttpServer(webSite);
             Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
@@ -78,7 +87,8 @@ namespace SensHub.Server
 			plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();
             // Unpack the static site contents and start the HTTP server
-			httpServer.UnpackSite();
+			if (options.WebDirectory == null)
+				httpServer.UnpackSite();
 			httpServer.Start();
 			// The MessageBus will run on the main thread until a shutdown is requested
 			System.Console.WriteLine("Server running - press any key to quit.");

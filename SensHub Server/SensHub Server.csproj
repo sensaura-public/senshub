@@ -118,6 +118,15 @@
     <EmbeddedResource Include="Resources\Site\js\jquery.js" />
     <EmbeddedResource Include="Resources\Site\js\materialize.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\sensaura.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\img\loading.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\jqueryjson.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
