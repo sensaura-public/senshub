@@ -1,9 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
@@ -13,7 +16,7 @@ namespace SensHub.Server.Http
     /// <summary>
     /// Implementation of HttpRequestHandler to process RPC calls
     /// </summary>
-    internal class RpcRequestHandler : HttpRequestHandler, IEnableLogger
+    internal class RpcRequestHandler : WebSocketRequestHandler, IEnableLogger
     {
         private class RpcCallInfo
         {
@@ -81,11 +84,6 @@ namespace SensHub.Server.Http
         private Dictionary<string, RpcCallInfo> m_methods;
 
         /// <summary>
-        /// Make the session available for local methods.
-        /// </summary>
-        protected HttpSession Session { get; set; }
-
-        /// <summary>
         /// Default constructor
         /// </summary>
         public RpcRequestHandler()
@@ -144,6 +142,76 @@ namespace SensHub.Server.Http
             }
         }
 
+		/// <summary>
+		/// Dispatch a call given the JSON description of the call.
+		/// </summary>
+		/// <param name="rpcCall"></param>
+		/// <returns></returns>
+		private IDictionary<string, object> DispatchCall(HttpSession session, IDictionary<string, object> rpcCall)
+		{
+			// Set up the response
+			Dictionary<string, object> callResult = new Dictionary<string, object>();
+			callResult["success"] = true;
+			callResult["session"] = session.ID;
+			callResult["type"] = "response";
+			if (rpcCall.ContainsKey("sequence"))
+				callResult["sequence"] = rpcCall["sequence"];
+			// We require the 'method' parameter in the request
+			if (!rpcCall.ContainsKey("method"))
+			{
+				callResult["success"] = false;
+				callResult["result"] = "Method name not specified in call.";
+				return callResult;
+			}
+			string methodName = rpcCall["method"].ToString();
+			// Arguments are optional but must be a dictionary if provided
+			IDictionary<string, object> parameters = null;
+			if (rpcCall.ContainsKey("arguments"))
+			{
+				parameters = rpcCall["arguments"] as IDictionary<string, object>;
+				if (parameters == null)
+				{
+					callResult["success"] = false;
+					callResult["result"] = "Method parameters must be provided as a dictionary.";
+					return callResult;
+				}
+			}
+			// Make sure we support the call
+			RpcCallInfo callInfo;
+			if (!m_methods.TryGetValue(methodName, out callInfo))
+				callInfo = null;
+			if (callInfo == null)
+			{
+				callResult["success"] = false;
+				callResult["result"] = "Method not implemented.";
+			}
+			else if (callInfo.AuthenticationRequired && (!session.Authenticated))
+			{
+				callResult["success"] = false;
+				callResult["result"] = "Authentication required.";
+			}
+			else
+			{
+				// Now try the call
+				try
+				{
+					Thread.SetData(Thread.GetNamedDataSlot("Session"), session);
+					callResult["result"] = callInfo.InvokeMethod(parameters);
+				}
+				catch (Exception ex)
+				{
+					callResult["success"] = false;
+					callResult["result"] = ex.Message;
+				}
+			}
+			return callResult;
+		}
+
+		private void DispatchMessage(HttpSession session, IDictionary<string, object> callInfo)
+		{
+
+		}
+
         /// <summary>
         /// Handle the request
         /// </summary>
@@ -152,66 +220,47 @@ namespace SensHub.Server.Http
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <returns></returns>
-        public override string HandleRequest(HttpSession session, string url, HttpListenerRequest request, HttpListenerResponse response)
+        public override string HandleRequest(string url, HttpListenerRequest request, HttpListenerResponse response)
         {
-            // Save the session for our methods to use
-            Session = session;
-            // Make sure it is a POST request and contains a JSON payload
-            if (request.HttpMethod != "POST")
-                return MethodNotSupported(response);
-            if ((!request.HasEntityBody) || (request.ContentType != "application/json"))
-                return BadRequest(response);
+			// Make sure it is a POST request and contains a JSON payload
+			if (request.HttpMethod != "POST")
+				return MethodNotSupported(response);
+			if ((!request.HasEntityBody) || (request.ContentType != "application/json"))
+				return BadRequest(response);
+			// Get the session associated with the request
+			HttpSession session = GetSession(request, response);
             // Try and interpret the data as JSON
-            Dictionary<string, object> rpcCall = ObjectPacker.UnpackRaw(request.InputStream);
-            // We require the 'methodName' parameter in the request
-            if (!rpcCall.ContainsKey("methodName"))
-                return BadRequest(response);
-            string methodName = rpcCall["methodName"].ToString();
-            // Arguments are optional but must be a dictionary if provided
-            IDictionary<string, object> parameters = null;
-            if (rpcCall.ContainsKey("parameters"))
-            {
-                parameters = rpcCall["parameters"] as IDictionary<string, object>;
-                if (parameters == null)
-                    return BadRequest(response);
-            }
-            // Set up the response
-            Dictionary<string, object> callResult = new Dictionary<string, object>();
-            callResult["failed"] = false;
-            // Make sure we support the call
-            RpcCallInfo callInfo;
-            if (!m_methods.TryGetValue(methodName, out callInfo))
-                callInfo = null;
-            if (callInfo == null)
-            {
-                callResult["failed"] = true;
-                callResult["failureMessage"] = "Method not implemented.";
-            }
-            else if (callInfo.AuthenticationRequired && (!Session.Authenticated))
-            {
-                callResult["failed"] = true;
-                callResult["failureMessage"] = "Authentication required.";
-            }
-            else
-            {
-                // Now try the call
-                try
-                {
-                    callResult["result"] = callInfo.InvokeMethod(parameters);
-                }
-                catch (Exception ex)
-                {
-                    callResult["failed"] = true;
-                    if ((ex.Message == null) || (ex.Message.Length == 0))
-                        callResult["failureMessage"] = ex.ToString();
-                    else
-                        callResult["failureMessage"] = ex.Message;
-                }
-            }
-            // Add any pending messages for the session
-			callResult["messages"] = session.Messages;
+			StreamReader reader = new StreamReader(request.InputStream);
+			List<IDictionary<string, object>> requests = JsonParser.Deserialize<List<IDictionary<string, object>>>(reader.ReadToEnd());
+			List<object> results = new List<object>();
+			foreach (Dictionary<string, object> item in requests)
+			{
+				if (!item.ContainsKey("type"))
+				{
+					this.Log().Info("Item in RPC request does not specify a type.");
+					continue;
+				}
+				string type = item["type"].ToString();
+				if (type == "request")
+				{
+					results.Add(new JsonObject(DispatchCall(session, item)));
+				}
+				else if (type == "message")
+				{
+					DispatchMessage(session, item);
+				}
+				else
+				{
+					this.Log().Info("Unsupported type in RPC stream - {0}", type);
+					continue;
+				}
+			}
+			// Add any pending messages for the session
+			List<IDictionary<string, object>> messages = session.Messages;
+			foreach (IDictionary<string, object> raw in messages)
+				results.Add(new JsonObject(raw));
 			// Finally we can send back the response
-            return JsonParser.ToJson(callResult);
+			return JsonParser.Serialize<JsonArray>(new JsonArray(results));
         }
 
         #region Core RPC
@@ -223,11 +272,12 @@ namespace SensHub.Server.Http
         [RpcCall("Authenticate", AuthenticationRequired = false)]
         public bool Authenticate(string password)
         {
+			HttpSession session = Thread.GetData(Thread.GetNamedDataSlot("Session")) as HttpSession;
             Configuration serverConfig = Locator.Current.GetService<Configuration>();
             string systemPassword = serverConfig["password"].ToString();
             if (password == systemPassword)
             {
-                Session.Authenticated = true;
+                session.Authenticated = true;
                 return true;
             }
             return false;
@@ -246,32 +296,56 @@ namespace SensHub.Server.Http
 		[RpcCall("Subscribe", AuthenticationRequired = true)]
 		public bool Subscribe(string topic)
 		{
+			HttpSession session = Thread.GetData(Thread.GetNamedDataSlot("Session")) as HttpSession;
 			IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
 			ITopic t = messageBus.Create(topic);
-			messageBus.Subscribe(t, Session);
+			messageBus.Subscribe(t, session);
 			return true;
 		}
 
 		[RpcCall("Unsubscribe", AuthenticationRequired = true)]
 		public bool Unsubscribe(string topic)
 		{
+			HttpSession session = Thread.GetData(Thread.GetNamedDataSlot("Session")) as HttpSession;
 			IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
 			ITopic t = messageBus.Create(topic);
-			messageBus.Unsubscribe(t, Session);
+			messageBus.Unsubscribe(t, session);
 			return true;
 		}
 
 		[RpcCall("Publish", AuthenticationRequired = true)]
 		public bool Publish(string topic, IDictionary<string, object> message)
 		{
+			HttpSession session = Thread.GetData(Thread.GetNamedDataSlot("Session")) as HttpSession;
 			IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();
 			ITopic t = messageBus.Create(topic);
 			MessageBuilder builder = new MessageBuilder();
 			foreach (string key in message.Keys)
 				builder.Add(key, message[key]);
-			messageBus.Publish(t, builder.CreateMessage(), Session);
+			messageBus.Publish(t, builder.CreateMessage(), session);
 			return true;
 		}
         #endregion
-    }
+
+		#region WebSocket Implementation
+		public override string Protocol
+		{
+			get
+			{
+				return "senshub";
+			}
+		}
+
+		public override bool WillAcceptWebSocket(string uri)
+		{
+			// No child URLs allowed
+			return uri.Length == 0;
+		}
+
+		public override void AttachWebSocket(string uri, WebSocket socket)
+		{
+			throw new NotImplementedException();
+		}
+		#endregion
+	}
 }

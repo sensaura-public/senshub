@@ -26,7 +26,7 @@ namespace SensHub.Server
         {
             FileSystem configDir = Locator.Current.GetService<FileSystem>();
             configDir = (FileSystem)configDir.OpenFolder(ConfigurationDirectory);
-            Dictionary<string, object> values = null;
+            IDictionary<string, object> values = null;
             if (configDir.FileExists(filename))
                 values = ObjectPacker.UnpackRaw(configDir.CreateFile(filename, FileAccessMode.Read, CreationOptions.OpenIfExists));
             ConfigurationImpl result = new ConfigurationImpl(description, values);

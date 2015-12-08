@@ -14,7 +14,7 @@ namespace SensHub.Plugins
 	/// </summary>
 	public interface IPackable
 	{
-		IReadOnlyDictionary<string, object> Pack();
+		IDictionary<string, object> Pack();
 	}
 
 	/// <summary>
@@ -24,6 +24,6 @@ namespace SensHub.Plugins
 	/// <typeparam name="T"></typeparam>
 	public interface IUnpacker<T> where T : IPackable
 	{
-		T Unpack(IReadOnlyDictionary<string, object> packed);
+		T Unpack(IDictionary<string, object> packed);
 	}
 }

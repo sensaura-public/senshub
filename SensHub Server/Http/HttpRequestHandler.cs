@@ -9,13 +9,15 @@ namespace SensHub.Server.Http
 {
     public abstract class HttpRequestHandler
     {
-        /// <summary>
+		// Name of the cookie to use for sessions
+		public const string SessionCookie = "SensHubSessionID";
+
+		/// <summary>
         /// Handle an incoming request.
         /// 
         /// This method is called when an incoming request matches the
         /// prefix this HttpRequestHandler is bound to.
         /// </summary>
-        /// <param name="session"></param>
         /// <param name="url"></param>
         /// <param name="request"></param>
         /// <param name="response"></param>
@@ -23,7 +25,31 @@ namespace SensHub.Server.Http
         /// Return a string to use as the reponse or null if the response
         /// object has been filled out already.
         /// </returns>
-        public abstract string HandleRequest(HttpSession session, string url, HttpListenerRequest request, HttpListenerResponse response);
+        public abstract string HandleRequest(string url, HttpListenerRequest request, HttpListenerResponse response);
+
+		/// <summary>
+		/// Get (or create) the session associated with the request.
+		/// 
+		/// Session information is maintained with cookies, this method will update the
+		/// response with the correct cookie to set the session ID as well.
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="response"></param>
+		/// <returns></returns>
+		public HttpSession GetSession(HttpListenerRequest request, HttpListenerResponse response)
+		{
+			HttpSession session = null;
+			Cookie cookie = request.Cookies[SessionCookie];
+            if (cookie != null)
+				session = HttpSession.GetSession(cookie.Value);
+			if (session == null)
+				session = HttpSession.CreateSession();
+			// Make sure we send it back
+			cookie = new Cookie(SessionCookie, session.ID);
+			cookie.Expires = DateTime.UtcNow.AddMinutes(HttpSession.SessionLifetime * 2);
+			response.Cookies.Add(cookie);
+			return session;
+		}
 
         /// <summary>
         /// Helper method to generate HTTP 404 Not Found responses

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net;
+using System.Net.WebSockets;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,9 +19,6 @@ namespace SensHub.Server.Http
     /// </summary>
     public class HttpServer : IEnableLogger
     {
-        // Name of the cookie to use for sessions
-        private const string SessionCookie = "SensHubSessionID";
-
         // The directory containing the site
         private string m_sitePath;
 
@@ -105,63 +103,13 @@ namespace SensHub.Server.Http
             }
         }
 
-        /// <summary>
-        /// Get (or create) a session instance for the given request.
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        private HttpSession GetRequestSession(HttpListenerRequest request)
+        public void ProcessRequest(HttpListenerContext context)
         {
-            HttpSession session = null;
-            // See if the cookie has a session
-            Cookie cookie = request.Cookies[SessionCookie];
-            if (cookie != null)
-            {
-                try
-                {
-                    Guid sessionID = Guid.Parse(cookie.Value);
-                    if (!m_sessions.TryGetValue(sessionID, out session))
-                        session = null;
-                }
-                catch
-                {
-                    // Invalid format, just ignore it
-                }
-            }
-            if (session == null)
-            {
-                session = new HttpSession();
-                session.RemoteAddress = request.RemoteEndPoint.Address.ToString();
-                m_sessions[session.UUID] = session;
-            }
-            // Do some verification
-            if (session.RemoteAddress != request.RemoteEndPoint.Address.ToString())
-            {
-                this.Log().Error("Attempt to use session from incorrect address - was {0}, now {1}.",
-                    session.RemoteAddress,
-                    request.RemoteEndPoint.Address.ToString()
-                    );
-                return null;
-            }
-            return session;
-        }
-
-        public string ProcessRequest(HttpListenerRequest request, HttpListenerResponse response)
-        {
-            // Get the session
-            HttpSession session = GetRequestSession(request);
-            if (session == null)
-            {
-                response.StatusCode = 403;
-                response.StatusDescription = "Request denied.";
-                return null;
-            }
-            session.LastAccess = DateTime.Now;
-            response.Cookies.Add(new Cookie(SessionCookie, session.UUID.ToString()));
-            this.Log().Debug("{0} - {1}", request.Url, session.UUID);
+			// Set default content type
+			context.Response.ContentType = "text/plain";
             // Find a matching handler
             HttpRequestHandler handler = null;
-            string fullURI = request.Url.AbsolutePath;
+            string fullURI = context.Request.Url.AbsolutePath;
             int matchLength = 0;
             foreach (string candidate in m_handlers.Keys)
             {
@@ -173,28 +121,66 @@ namespace SensHub.Server.Http
                 }
             }
             // Invoke the handler if we have one
-            string result = null;
             if (handler == null)
             {
-                response.StatusCode = 404;
-                response.StatusDescription = "Not found.";
-                response.KeepAlive = false;
+				context.Response.StatusCode = 404;
+				context.Response.StatusDescription = "Not found.";
+				context.Response.KeepAlive = false;
             }
             else
             {
-                try
-                {
-                    result = handler.HandleRequest(session, fullURI.Substring(matchLength), request, response);
-                }
-                catch (Exception ex)
-                {
-                    this.Log().Error("Failed to process request - {0}", ex.ToString());
-                    response.StatusCode = 500;
-                    response.StatusDescription = ex.ToString();
-                    response.KeepAlive = false;
-                }
+				// Is this a websocket request ?
+				if (context.Request.IsWebSocketRequest)
+				{
+					WebSocketRequestHandler wsHandler = handler as WebSocketRequestHandler;
+					if (wsHandler==null)
+					{
+						context.Response.StatusCode = 404;
+						context.Response.StatusDescription = "Not found.";
+						context.Response.KeepAlive = false;
+					}
+					else
+					{
+						if (!wsHandler.WillAcceptWebSocket(fullURI.Substring(matchLength)))
+						{
+							context.Response.StatusCode = 404;
+							context.Response.StatusDescription = "Not found.";
+							context.Response.KeepAlive = false;
+						}
+						else
+						{
+							// Accept the connection and attach it
+							HttpListenerWebSocketContext wsContext = null;
+							var runSync = Task.Factory.StartNew(new Func<Task>(async () =>
+							{
+								wsContext = await context.AcceptWebSocketAsync(wsHandler.Protocol);
+							})).Unwrap();
+							runSync.Wait();
+							if (wsContext != null)
+								wsHandler.AttachWebSocket(fullURI.Substring(matchLength), wsContext.WebSocket);
+						}
+					}
+				}
+				else {
+					try
+					{
+						string response = handler.HandleRequest(fullURI.Substring(matchLength), context.Request, context.Response);
+						if (response != null)
+						{
+							byte[] buf = Encoding.UTF8.GetBytes(response);
+							context.Response.ContentLength64 = buf.Length;
+							context.Response.OutputStream.Write(buf, 0, buf.Length);
+						}
+					}
+					catch (Exception ex)
+					{
+						this.Log().Error("Failed to process request - {0}", ex.ToString());
+						context.Response.StatusCode = 500;
+						context.Response.StatusDescription = ex.ToString();
+						context.Response.KeepAlive = false;
+					}
+				}
             }
-            return result;
         }
 
         /// <summary>
@@ -224,16 +210,7 @@ namespace SensHub.Server.Http
                             var ctx = c as HttpListenerContext;
                             try
                             {
-                                // Set default content type
-                                ctx.Response.ContentType = "text/plain";
-                                // Process the request
-                                string response = ProcessRequest(ctx.Request, ctx.Response);
-                                if (response != null)
-                                {
-                                    byte[] buf = Encoding.UTF8.GetBytes(response);
-                                    ctx.Response.ContentLength64 = buf.Length;
-                                    ctx.Response.OutputStream.Write(buf, 0, buf.Length);
-                                }
+                                ProcessRequest(ctx);
                             }
                             catch { } // suppress any exceptions
                             finally

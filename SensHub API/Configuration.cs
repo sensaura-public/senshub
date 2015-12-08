@@ -71,9 +71,9 @@ namespace SensHub.Plugins
 		/// When the configuration is serialised only modified values will be saved.
 		/// </summary>
 		/// <returns>A dictionary of modified values.</returns>
-		public IReadOnlyDictionary<string, object> Pack()
+		public IDictionary<string, object> Pack()
 		{
-			return (IReadOnlyDictionary<string, object>)m_values;
+			return (IDictionary<string, object>)m_values;
 		}
 		#endregion
 

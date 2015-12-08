@@ -9,6 +9,9 @@ namespace SensHub.Server.Http
 {
     public class HttpSession : ISubscriber
     {
+		// The lifetime of a session (in minutes)
+		public static int SessionLifetime = 10;
+
 		/// <summary>
 		/// Hold information about a message.
 		/// </summary>
@@ -38,13 +41,13 @@ namespace SensHub.Server.Http
 			/// Get a packed version of the message information.
 			/// </summary>
 			/// <returns></returns>
-			public IReadOnlyDictionary<string, object> Pack()
+			public IDictionary<string, object> Pack()
 			{
 				Dictionary<string, object> results = new Dictionary<string, object>();
 				results.Add("timestamp", Timestamp);
 				results.Add("topic", Topic.ToString());
 				results.Add("payload", Payload);
-				return (IReadOnlyDictionary<string, object>)results;
+				return (IDictionary<string, object>)results;
 			}
 		}
 
@@ -56,11 +59,11 @@ namespace SensHub.Server.Http
 		/// 
 		/// Reading this property clears the list.
 		/// </summary>
-		public List<IReadOnlyDictionary<string, object>> Messages
+		public List<IDictionary<string, object>> Messages
 		{
 			get
 			{
-				List<IReadOnlyDictionary<string, object>> result = new List<IReadOnlyDictionary<string, object>>();
+				List<IDictionary<string, object>> result = new List<IDictionary<string, object>>();
 				lock (m_messages)
 				{
 					foreach (MessageInfo info in m_messages)
@@ -74,7 +77,7 @@ namespace SensHub.Server.Http
         /// <summary>
         /// Session ID
         /// </summary>
-        public Guid UUID { get; private set; }
+        public string ID { get; private set; }
 
         /// <summary>
         /// Session variables.
@@ -94,14 +97,15 @@ namespace SensHub.Server.Http
         /// <summary>
         /// When the session was last accessed
         /// </summary>
-        public DateTime LastAccess { get; set; }
+        public DateTime LastAccess { get; private set; }
 
 		/// <summary>
 		/// Constructor
 		/// </summary>
-        internal HttpSession()
+        private HttpSession()
         {
-            UUID = Guid.NewGuid();
+            ID = Guid.NewGuid().ToString();
+			LastAccess = DateTime.Now;
             Variables = new Dictionary<string, object>();
         }
 
@@ -123,5 +127,82 @@ namespace SensHub.Server.Http
 				m_messages.Add(new MessageInfo(topic, message));
 			}
 		}
+
+		#region Static interface
+		// Set of active sessions
+		private static Dictionary<string, HttpSession> m_sessions = new Dictionary<string, HttpSession>();
+
+		// When we last checked for expired sessions
+		private static DateTime m_lastExpiryCheck = DateTime.Now;
+
+		/// <summary>
+		/// Expire any sessions that have timed out
+		/// </summary>
+		private static void ExpireSessions()
+		{
+			lock (m_sessions)
+			{
+				// Do we need to do a check ?
+				DateTime now = DateTime.Now;
+				if ((now - m_lastExpiryCheck).TotalMinutes < (SessionLifetime / 2))
+					return;
+				m_lastExpiryCheck = DateTime.Now;
+				// Build a list of expired sessions
+				List<string> expired = null;
+				foreach (string id in m_sessions.Keys)
+				{
+					HttpSession session = m_sessions[id];
+					if ((now - session.LastAccess).TotalMinutes > SessionLifetime)
+					{
+						if (expired == null)
+							expired = new List<string>();
+						expired.Add(id);
+					}
+				}
+				// Get rid of any that are no longer active
+				foreach (string id in expired)
+					m_sessions.Remove(id);
+			}
+		}
+
+		/// <summary>
+		/// Get a session associated with the given ID
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns>The session for the ID or null if none is available.</returns>
+		public static HttpSession GetSession(string id)
+		{
+			// Run an expiry check first
+			ExpireSessions();
+			// See if we have a session with that ID
+			HttpSession result = null;
+			lock (m_sessions)
+			{
+				if (m_sessions.ContainsKey(id))
+				{
+					result = m_sessions[id];
+					result.LastAccess = DateTime.Now;
+				}
+			}
+			return result;
+		}
+
+		/// <summary>
+		/// Create a new session
+		/// </summary>
+		/// <returns>A session</returns>
+		public static HttpSession CreateSession()
+		{
+			// Run an expiry check first
+			ExpireSessions();
+			// Create the new session and add it to the set
+			HttpSession session = new HttpSession();
+			lock (m_sessions)
+			{
+				m_sessions[session.ID] = session;
+			}
+			return session;
+		}
+		#endregion
 	}
 }

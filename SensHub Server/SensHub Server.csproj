@@ -63,6 +63,7 @@
     <Compile Include="Http\RpcException.cs" />
     <Compile Include="Http\RpcRequestHandler.cs" />
     <Compile Include="Http\StaticFileHandler.cs" />
+    <Compile Include="Http\WebSocketRequestHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MetadataManager.cs" />

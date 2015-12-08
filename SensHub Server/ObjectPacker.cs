@@ -25,7 +25,7 @@ namespace SensHub.Server
 			/// Constructor with packed values
 			/// </summary>
 			/// <param name="packed"></param>
-			public GenericPackedObject(IReadOnlyDictionary<string, object> packed)
+			public GenericPackedObject(IDictionary<string, object> packed)
 			{
 				m_values = new Dictionary<string, object>();
 				foreach(KeyValuePair<string, object> value in packed)
@@ -66,9 +66,9 @@ namespace SensHub.Server
 				return true;
 			}
 
-			public IReadOnlyDictionary<string, object> Pack()
+			public IDictionary<string, object> Pack()
 			{
-				return (IReadOnlyDictionary<string, object>)m_values;
+				return (IDictionary<string, object>)m_values;
 			}
 		}
 
@@ -82,7 +82,7 @@ namespace SensHub.Server
 			/// </summary>
 			/// <param name="packed"></param>
 			/// <returns></returns>
-			public GenericPackedObject Unpack(IReadOnlyDictionary<string, object> packed)
+			public GenericPackedObject Unpack(IDictionary<string, object> packed)
 			{
 				return new GenericPackedObject(packed);
 			}
@@ -108,7 +108,7 @@ namespace SensHub.Server
 		/// <returns></returns>
 		public static string Pack(IPackable packable, bool storeTypeInformation = false)
 		{
-            IReadOnlyDictionary<string, object> values = packable.Pack();
+            IDictionary<string, object> values = packable.Pack();
             // Annoyingly we need to convert to a IDictionary
             Dictionary<string, object> mutable = new Dictionary<string, object>();
             foreach (KeyValuePair<string, object> pair in values)
@@ -123,7 +123,7 @@ namespace SensHub.Server
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static Dictionary<string, object> UnpackRaw(string json)
+        public static IDictionary<string, object> UnpackRaw(string json)
         {
             IDictionary<string, object> result;
             try
@@ -141,10 +141,10 @@ namespace SensHub.Server
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static Dictionary<string, object> UnpackRaw(Stream jsonFile)
+        public static IDictionary<string, object> UnpackRaw(Stream jsonFile)
         {
             StreamReader reader = new StreamReader(jsonFile);
-            Dictionary<string, object> result = UnpackRaw(reader.ReadToEnd());
+            IDictionary<string, object> result = UnpackRaw(reader.ReadToEnd());
             jsonFile.Close();
             return result;
         }
@@ -156,7 +156,7 @@ namespace SensHub.Server
 		/// <returns></returns>
 		public static IPackable Unpack(string json)
 		{
-            IReadOnlyDictionary<string, object> values = UnpackRaw(json);
+            IDictionary<string, object> values = UnpackRaw(json);
             if (values == null)
                 return null;
             // Do we have a type key ?
@@ -215,7 +215,7 @@ namespace SensHub.Server
         /// <returns></returns>
         public static T Unpack<T>(string json) where T : IPackable
 		{
-            IReadOnlyDictionary<string, object> values = UnpackRaw(json);
+            IDictionary<string, object> values = UnpackRaw(json);
             if (values == null)
                 return default(T);
             IUnpacker<T> unpacker = Locator.Current.GetService<IUnpacker<T>>();
