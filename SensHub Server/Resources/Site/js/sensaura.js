@@ -44,56 +44,147 @@ function internalUnsubscribe(ref) {
   return null;
   }
 
-function internalDispatch(topic, message) {
-  subs = [ ];
-  len = topic.length
-  for (candidate in subscriptions) {
-    if (candidate.slice(0, len) == topic) {
-      for (subscriber in subscriptions[candidate])
-        subs.push(subscriber);
+//---------------------------------------------------------------------------
+// Message handling and RPC processing
+//---------------------------------------------------------------------------
+
+var ws = null;
+var seq = 0;
+var pending = { };
+var serverOK = false;
+
+function recv(data) {
+  console.log("Received data (RPC or WS)");
+  // Get the type of data
+  if (!data.hasOwnProperty("type")) {
+    console.log("Received untyped message, ignoring.");
+    return;
+    }
+  if (data["type"] == "response") {
+    // Method call response, find the matching callback and invoke it
+    if (data.hasOwnProperty("sequence") && pending.hasOwnProperty(data["sequence"])) {
+      callback = pending[data["sequence"]]
+      if (callback)
+        callback(data["success"], data["result"])
+      delete pending[data["sequence"]]
       }
     }
-  // Now dispatch the method
-  for (var i=0; i<subs.length; i++) {
-    if (subs[i] in subscribers)
-      subscribers[subs[i]][1](topic, message);
+  else if(data["type"] == "message") {
+    // Incoming message
+    if (!(data.hasOwnProperty("topic") && data.hasOwnProperty("message"))) {
+      console.log("Message is missing a topic or a body, ignoring");
+      return;
+      }
+    topic = data["topic"];
+    message = data["message"];
+    // Figure out who wants it
+    subs = [ ];
+    len = topic.length
+    for (candidate in subscriptions) {
+      if (candidate.slice(0, len) == topic) {
+        for (subscriber in subscriptions[candidate])
+          subs.push(subscriber);
+        }
+      }
+    // Now dispatch the message
+    for (var i=0; i<subs.length; i++) {
+      if (subs[i] in subscribers)
+        subscribers[subs[i]][1](topic, message);
+      }
+    }
+  else
+    console.log("Unsupported message type '" + data["type"] + "', ignoring.");
+  }
+
+function rpcResponse(data) {
+  console.log("Got response via RPC");
+  // Process method call responses first
+  if (data.hasOwnProperty("response"))
+    recv(data["response"]);
+  // Process any messages
+  for (msg in response["messages"])
+    recv(msg);
+  }
+
+function rpcFailure(xhr, message, exception) {
+  $("#server-message").text("Connection failure - " + message);
+  $("#server-message").slideDown();
+  }
+
+function send(type, target, data, onComplete) {
+  // Build up the actual object to send
+  var value = { type: type };
+  if (type == "request") {
+    value['method'] = target;
+    value['sequence'] = seq;
+    value['arguments'] = data;
+    pending[seq] = onComplete;
+    seq = seq + 1;
+    }
+  else if (type == "message") {
+    value['topic'] = target;
+    value['payload'] = data;
+    }
+  // Now send it off
+  if (ws != null)
+    ws.send($.toJSON(value));
+  else {
+    $.ajax({
+      type: "POST",
+      url: "/api/",
+      error: rpcFailure,
+      data: $.toJSON(value),
+      success: rpcResponse,
+      dataType: "json",
+      contentType: "application/json"
+      });
     }
   }
+
+// Publish a message
+function message(topic, body, onComplete) {
+  send("message", topic, body, onComplete);
+  }
+
+// Make a RPC call
+function rpcCall(method, args, onComplete) {
+  send("request", method, args, onComplete);
+  }
+
+function serverConnected(status, data) {
+  if(!status)
+    return;
+  serverOK = true;
+  pageSetup()
+  }
+
+// Server initialisation
+$(document).ready(
+  function() {
+    if ("WebSocket" in window) {
+      var wsURL = "ws://" + location.hostname + (location.port ? ':' + location.port : ' ') + "/api/";
+      var connection = new WebSocket(wsURL, [ 'rpc' ]);
+      connection.onopen = function() {
+        ws = connection;
+        $("#server-message").text("Connection established");
+        $("#server-message").slideDown();
+        }
+      connection.onerror = function(error) {
+        // Fall back to polling
+        rpcCall("Poll", { }, serverConnected);
+        }
+      }
+    else {
+      // Fall back to polling
+      rpcCall("Poll", { }, serverConnected);
+      }
+    }
+  );
 
 //---------------------------------------------------------------------------
 // Base API interface
 //---------------------------------------------------------------------------
 
-function shApiFailure(method, onFailure) {
-  onFailure(method, "Network error.");
-  }
-
-function shApiSuccess(method, data, onSuccess, onFailure) {
-  if(data.failed) {
-    onFailure(method, data.failureMessage);
-    return;
-    }
-  // If we have any messages, process them
-  for (var i=0; i<data.messages.length; i++)
-    internalDispatch(data.messages[i].topic, data.messages[i].message);
-  // Let the caller know it worked and pass the response back
-  onSuccess(method, data.result);
-  }
-
-function shAPI(method, args, onSuccess, onFailure) {
-  $.ajax({
-    type: "POST",
-    url: "/api/",
-    data: $.toJSON({
-      methodName: method,
-      parameters: args,
-      }),
-    success: function(data) { shApiSuccess(method, data, onSuccess, onFailure); },
-    error: function(xhr, message, exception) { shApiFailure(method, onFailure); },
-    dataType: "json",
-    contentType: "application/json"
-    });
-  }
 
 function startupError(message) {
   if (!$("#splash-error").is(":visible")) {
@@ -164,19 +255,20 @@ function serverInit(password) {
     );
   }
 
-function subscribe(topic, subscriber, onSuccess, onFailure) {
+function subscribe(topic, subscriber, onComplete) {
   // Assume it is going to work and get a reference
   ref = internalSubscribe(topic, subscriber);
   // Make the call
-  shAPI(
+  rpcCall(
     "Subscribe",
     {
       topic: topic
     },
-    onSuccess,
-    function(method, message) {
-      internalUnsubscribe(ref);
-      onFailure(method, message);
+    function(status, result) {
+      if(!status)
+        internalUnsubscribe(ref);
+      if(onComplete)
+        onComplete(status, result);
       }
     );
   }
@@ -185,28 +277,12 @@ function unsubscribe(ref) {
   topic = internalUnsubscribe(ref);
   if (topic != null) {
     // No more subscribers, tell the server to stop sending messages
-    shAPI(
-      "Unsubscribe",
-      {
-        topic: topic
-      },
-      function(method, result) {
-        // Do nothing
-        },
-      function(method, message) {
-        // Do nothing
-        }
-      );
+    rpcCall("Unsubscribe", { topic: topic });
     }
   }
 
-$(document).ready(function () {
-  // Try anonymous connection first
-  serverInit("");
-  });
-
 //---------------------------------------------------------------------------
-// UI manipulation
+// Initial page setup
 //---------------------------------------------------------------------------
 
 function updateState(state) {
@@ -220,6 +296,60 @@ function onServerNotification(topic, message) {
 function onServerStateChange(topic, message) {
   // TODO: Update UI with new state information
   }
+
+function pageSetup() {
+  // What we need to do:
+  //   Authenticate
+  //   Get the server state (all actions, action types, etc)
+  //   Register for events giving changes to the state
+  //   Register for errors and warnings
+  //   Display the home page
+  var callCount = 3;
+  var onComplete = function(status, result) {
+    if(status) {
+      callCount = callCount - 1;
+      if (callCount == 0)
+        setActivePage("home");
+      }
+    else {
+      if (!$("#splash-error").is(":visible")) {
+        startupError(result);
+        }
+      }
+    }
+  // First, try and authenticate
+  password = ${"#password"}.val();
+  rpcCall(
+    "Authenticate", { password: password },
+    function(status, result) {
+      if(!status) {
+        // Authentication failed, show the login screen
+        if(!$("#splash-login").is(":visible"))
+          $("#splash-login").slideDown();
+        if(password!=="")
+          $("#login-message").text("Authentication failed. Please check your password.");
+        }
+      else {
+        // Get the server state
+        rpcCall("GetServerState", { },
+          function(status, result) {
+            onComplete(status, result);
+            if(status)
+              updateState(result);
+            }
+          );
+        // Subscribe to state updates
+        subscribe("private/server/state", onServerStateChange, onComplete);
+        // Subscribe to notifications
+        subscribe("private/server/notifications", onServerNotification, onComplete);
+        }
+      }
+    );
+  }
+
+//---------------------------------------------------------------------------
+// UI manipulation
+//---------------------------------------------------------------------------
 
 function doTransition(target) {
   activePage = target;
