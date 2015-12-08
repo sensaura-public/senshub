@@ -152,7 +152,6 @@ namespace SensHub.Server.Http
 			// Set up the response
 			Dictionary<string, object> callResult = new Dictionary<string, object>();
 			callResult["success"] = true;
-			callResult["session"] = session.ID;
 			callResult["type"] = "response";
 			if (rpcCall.ContainsKey("sequence"))
 				callResult["sequence"] = rpcCall["sequence"];
@@ -230,20 +229,14 @@ namespace SensHub.Server.Http
 			// Get the session associated with the request
 			HttpSession session = GetSession(request, response);
             // Try and interpret the data as JSON
-			StreamReader reader = new StreamReader(request.InputStream);
-			List<IDictionary<string, object>> requests = JsonParser.Deserialize<List<IDictionary<string, object>>>(reader.ReadToEnd());
-			List<object> results = new List<object>();
-			foreach (Dictionary<string, object> item in requests)
+			Dictionary<string, object> results = new Dictionary<string, object>();
+			IDictionary<string, object> item = ObjectPacker.UnpackRaw(request.InputStream);
+			if (item.ContainsKey("type"))
 			{
-				if (!item.ContainsKey("type"))
-				{
-					this.Log().Info("Item in RPC request does not specify a type.");
-					continue;
-				}
 				string type = item["type"].ToString();
 				if (type == "request")
 				{
-					results.Add(new JsonObject(DispatchCall(session, item)));
+					results["response"] = DispatchCall(session, item);
 				}
 				else if (type == "message")
 				{
@@ -252,15 +245,12 @@ namespace SensHub.Server.Http
 				else
 				{
 					this.Log().Info("Unsupported type in RPC stream - {0}", type);
-					continue;
 				}
 			}
 			// Add any pending messages for the session
-			List<IDictionary<string, object>> messages = session.Messages;
-			foreach (IDictionary<string, object> raw in messages)
-				results.Add(new JsonObject(raw));
+			results["messages"] = session.Messages;
 			// Finally we can send back the response
-			return JsonParser.Serialize<JsonArray>(new JsonArray(results));
+			return JsonParser.ToJson(results);
         }
 
         #region Core RPC
