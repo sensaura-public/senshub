@@ -9,7 +9,6 @@
       <!--Let browser know website is optimized for mobile-->
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     </head>
-
     <body>
       <!--Import jQuery before materialize.js-->
       <script type="text/javascript" src="js/jquery.js"></script>
@@ -121,15 +120,35 @@
           </div>
         </div>
         <div id="plugins" class="row hidden padding-small">
-          <!-- Single plugin -->
-          <div class="col s4">
-            <div class="z-depth-2 row padding-small margin-vertical">
-              <div class="valign-wrapper"><img class="valign" src="img/icons/myicon.png" width="48px" height="48px"><h2 class="valign truncate margin-none-vertical margin-small-horizontal">Source Title</h2></div>
-              <div>This is a description of the source. It is provided by the user when they create it.</div>
-              <div class="right-align">
-                <a href="#"><i class="material-icons">info</i></a>
-                <a href="#"><i class="material-icons">edit</i></a>
-                <a href="#"><i class="material-icons">delete</i></a>
+        </div>
+        <div id="templates" class="hidden">
+          <!-- Template for displaying plugin information -->
+          <div id="template-plugin" class="col s12 m6 l4 plugin">
+            <div class="z-depth-2 padding-small margin-small">
+              <div class="header">
+                <div class="left"><img src="img/${id}/${icon}"></div>
+                <div class="title">${displayname}</div>
+                <div class="tools right-align">
+                  <a class="modal-trigger" href="#" onclick="$('#${template-plugin}-long').openModal();"><i class="small material-icons">info</i></a>
+                  <a href="#"><i class="small material-icons">settings</i></a>
+                </div>
+              </div>
+              <div class="description">
+                ${shortdescription}
+              </div>
+              <div class="tools right-align">
+                <input type="checkbox" id="${template-plugin}-enabled" class="filled-in" checked="checked"/>
+                <label for="${template-plugin}-enabled">Enabled</label>
+              </div>
+              <!-- Modal for long description -->
+              <div id="${template-plugin}-long" class="modal modal-fixed-footer">
+                <div class="modal-content">
+                  <h4>${displayname}</h4>
+                  <p>${longdescription}</p>
+                </div>
+                <div class="modal-footer">
+                  <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>
+                </div>
               </div>
             </div>
           </div>

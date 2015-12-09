@@ -5,6 +5,7 @@
 
 //--- Globals
 var activePage = "loader"
+var debugMode = false;
 
 //---------------------------------------------------------------------------
 // Internal subscribe/unsubscribe for messages
@@ -161,6 +162,10 @@ function serverConnected(status, data) {
 // Server initialisation
 $(document).ready(
   function() {
+    if (debugMode) {
+      console.log("!! Debug mode is enabled, network setup will not occur.");
+      return;
+      }
     if ("WebSocket" in window) {
       var wsURL = "ws://" + location.hostname + (location.port ? ':' + location.port : ' ') + "/api/";
       var connection = new WebSocket(wsURL, [ 'rpc' ]);
@@ -318,7 +323,7 @@ function pageSetup() {
       }
     }
   // First, try and authenticate
-  password = ${"#password"}.val();
+  password = $("#password").val();
   rpcCall(
     "Authenticate", { password: password },
     function(status, result) {
