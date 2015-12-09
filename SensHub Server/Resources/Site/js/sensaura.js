@@ -168,7 +168,7 @@ $(document).ready(
       }
     if ("WebSocket" in window) {
       var wsURL = "ws://" + location.hostname + (location.port ? ':' + location.port : ' ') + "/api/";
-      var connection = new WebSocket(wsURL, [ 'rpc' ]);
+      var connection = new WebSocket(wsURL, [ 'senshub' ]);
       connection.onopen = function() {
         ws = connection;
         ws.onmessage = function(e) { recv(e.data); };

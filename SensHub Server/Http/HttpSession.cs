@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Net.WebSockets;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins;
+using Splat;
 
 namespace SensHub.Server.Http
 {
-    public class HttpSession : ISubscriber
+    public class HttpSession : ISubscriber, IEnableLogger
     {
 		// The lifetime of a session (in minutes)
 		public static int SessionLifetime = 10;
@@ -53,6 +56,8 @@ namespace SensHub.Server.Http
 
 		// Instance variables
 		private List<MessageInfo> m_messages = new List<MessageInfo>();
+
+        public WebSocket Socket { get; set; }
 
 		/// <summary>
 		/// Get the list of pending messages for this session.
@@ -120,11 +125,30 @@ namespace SensHub.Server.Http
 		/// <param name="topic"></param>
 		/// <param name="source"></param>
 		/// <param name="message"></param>
-		public void MessageReceived(ITopic topic, object source, Message message)
+		public async void MessageReceived(ITopic topic, object source, Message message)
 		{
-			lock (m_messages)
-			{
-				m_messages.Add(new MessageInfo(topic, message));
+            MessageInfo info = new MessageInfo(topic, message);
+            if (Socket == null)
+            {
+                lock (m_messages)
+                    m_messages.Add(info);
+                return;
+            }
+            if (Socket.State == WebSocketState.Open)
+            {
+                try
+                {
+                    await Socket.SendAsync(
+                        new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonParser.ToJson(info.Pack()))),
+                        WebSocketMessageType.Text,
+                        true,
+                        CancellationToken.None
+                        );
+                }
+                catch (Exception ex)
+                {
+                    this.Log().Debug("Unable to dispatch message to session - {0}", ex.Message);
+                }
 			}
 		}
 

@@ -103,10 +103,15 @@ namespace SensHub.Server.Http
             }
         }
 
-        public void ProcessRequest(HttpListenerContext context)
+        private void Return404(HttpListenerContext context, string status = "Not Found")
         {
-			// Set default content type
-			context.Response.ContentType = "text/plain";
+            context.Response.StatusCode = 404;
+            context.Response.StatusDescription = status;
+            context.Response.KeepAlive = false;
+        }
+
+        private void ProcessRequest(HttpListenerContext context)
+        {
             // Find a matching handler
             HttpRequestHandler handler = null;
             string fullURI = context.Request.Url.AbsolutePath;
@@ -120,66 +125,60 @@ namespace SensHub.Server.Http
                     matchLength = size;
                 }
             }
+            string childURI = fullURI.Substring(matchLength);
             // Invoke the handler if we have one
             if (handler == null)
             {
-				context.Response.StatusCode = 404;
-				context.Response.StatusDescription = "Not found.";
-				context.Response.KeepAlive = false;
+                Return404(context);
+                return;
             }
-            else
+            // Is this a websocket request ?
+            if (context.Request.IsWebSocketRequest)
             {
-				// Is this a websocket request ?
-				if (context.Request.IsWebSocketRequest)
-				{
-					WebSocketRequestHandler wsHandler = handler as WebSocketRequestHandler;
-					if (wsHandler==null)
-					{
-						context.Response.StatusCode = 404;
-						context.Response.StatusDescription = "Not found.";
-						context.Response.KeepAlive = false;
-					}
-					else
-					{
-						if (!wsHandler.WillAcceptWebSocket(fullURI.Substring(matchLength)))
-						{
-							context.Response.StatusCode = 404;
-							context.Response.StatusDescription = "Not found.";
-							context.Response.KeepAlive = false;
-						}
-						else
-						{
-							// Accept the connection and attach it
-							HttpListenerWebSocketContext wsContext = null;
-							var runSync = Task.Factory.StartNew(new Func<Task>(async () =>
-							{
-								wsContext = await context.AcceptWebSocketAsync(wsHandler.Protocol);
-							})).Unwrap();
-							runSync.Wait();
-							if (wsContext != null)
-								wsHandler.AttachWebSocket(fullURI.Substring(matchLength), wsContext.WebSocket);
-						}
-					}
-				}
-				else {
-					try
-					{
-						string response = handler.HandleRequest(fullURI.Substring(matchLength), context.Request, context.Response);
-						if (response != null)
-						{
-							byte[] buf = Encoding.UTF8.GetBytes(response);
-							context.Response.ContentLength64 = buf.Length;
-							context.Response.OutputStream.Write(buf, 0, buf.Length);
-						}
-					}
-					catch (Exception ex)
-					{
-						this.Log().Error("Failed to process request - {0}", ex.ToString());
-						context.Response.StatusCode = 500;
-						context.Response.StatusDescription = ex.ToString();
-						context.Response.KeepAlive = false;
-					}
-				}
+                this.Log().Debug("Websocket request on URI {0}", fullURI);
+                WebSocketRequestHandler wsHandler = handler as WebSocketRequestHandler;
+                if ((wsHandler == null) || (!wsHandler.WillAcceptWebSocket(fullURI.Substring(matchLength))))
+                {
+                    Return404(context);
+                    return;
+                }
+                Task.Factory.StartNew(async () =>
+                {
+                    HttpListenerWebSocketContext wsContext = null;
+                    try
+                    {
+                        wsContext = await context.AcceptWebSocketAsync(wsHandler.Protocol);
+                        wsHandler.AttachWebSocket(fullURI.Substring(matchLength), wsContext.WebSocket);
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Log().Warn("Failed to accept WebSocket connection - {0}", ex.Message);
+                        if (wsContext != null)
+                            wsContext.WebSocket.Abort();
+                    }
+                });
+                return;
+            }
+            // Normal request
+            try
+            {
+                // Set default content type
+                context.Response.ContentType = "text/plain";
+                // Get the handler to service the request
+                string response = handler.HandleRequest(fullURI.Substring(matchLength), context.Request, context.Response);
+                if (response != null)
+                {
+                    byte[] buf = Encoding.UTF8.GetBytes(response);
+                    context.Response.ContentLength64 = buf.Length;
+                    context.Response.OutputStream.Write(buf, 0, buf.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                this.Log().Error("Failed to process request - {0}", ex.ToString());
+                context.Response.StatusCode = 500;
+                context.Response.StatusDescription = ex.ToString();
+                context.Response.KeepAlive = false;
             }
         }
 

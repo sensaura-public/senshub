@@ -80,6 +80,9 @@ namespace SensHub.Server.Http
 
         }
 
+        // Maximum size of incoming websocket packets
+        private const int MaxPacketSize = 4096;
+
         // Cache our method information
         private Dictionary<string, RpcCallInfo> m_methods;
 
@@ -332,10 +335,86 @@ namespace SensHub.Server.Http
 			return uri.Length == 0;
 		}
 
-		public override void AttachWebSocket(string uri, WebSocket socket)
+		public override async void AttachWebSocket(string uri, WebSocket socket)
 		{
-			throw new NotImplementedException();
-		}
-		#endregion
-	}
+            // Create a session specificly for this WebSocket
+            HttpSession session = HttpSession.CreateSession();
+            session.Socket = socket;
+            byte[] receiveBuffer = new byte[MaxPacketSize];
+            while (socket.State == WebSocketState.Open)
+            {
+                WebSocketReceiveResult result = null;
+                try
+                {
+                    result = await socket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
+                }
+                catch (Exception ex)
+                {
+                    this.Log().Debug("Error receiving data from websocket - {0}", ex.Message);
+                    continue;
+                }
+                // Trigger activity on the session so it doesn't expire
+                HttpSession.GetSession(session.ID);
+                // Process the message
+                if ((result.MessageType == WebSocketMessageType.Close) || (session == null))
+                {
+                    await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "", CancellationToken.None);
+                    continue;
+                }
+                // Assume the message is JSON and convert it
+                string json = null;
+                try
+                {
+                    json = Encoding.UTF8.GetString(receiveBuffer, 0, result.Count);
+                }
+                catch (Exception ex)
+                {
+                    this.Log().Debug("Unable to convert incoming message to text - {0}", ex.Message);
+                    continue;
+                }
+                // Unpack the JSON into a message
+                IDictionary<string, object> item = null;
+                try
+                {
+                    item = ObjectPacker.UnpackRaw(json);
+                }
+                catch (Exception ex)
+                {
+                    this.Log().Debug("Could not unpack JSON into a message or RPC call - {0}", ex.Message);
+                    continue;
+                }
+                if (item.ContainsKey("type"))
+                {
+                    string type = item["type"].ToString();
+                    if (type == "request")
+                    {
+                        try
+                        {
+                            IDictionary<string, object> callResult = DispatchCall(session, item);
+                            await socket.SendAsync(
+                                new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonParser.ToJson(callResult))),
+                                WebSocketMessageType.Text,
+                                true,
+                                CancellationToken.None
+                                );
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Log().Debug("Unable to dispatch response to RPC method - {0}", ex.Message);
+                            continue;
+                        }
+                    }
+                    else if (type == "message")
+                    {
+                        DispatchMessage(session, item);
+                    }
+                    else
+                    {
+                        this.Log().Info("Unsupported type in RPC stream - {0}", type);
+                    }
+                }
+            }
+        }
+        #endregion
+    }
 }
