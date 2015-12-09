@@ -15,14 +15,14 @@ namespace SensHub.Server
 	/// </summary>
 	internal class PluginManager : IEnableLogger
 	{
-		private Dictionary<Guid, IPlugin> m_pluginsAvailable = new Dictionary<Guid, IPlugin>();
+		private Dictionary<Guid, AbstractPlugin> m_pluginsAvailable = new Dictionary<Guid, AbstractPlugin>();
 		private Dictionary<Guid, PluginHost> m_pluginsEnabled = new Dictionary<Guid, PluginHost>();
 
 		/// <summary>
 		/// Add an individual to the master list.
 		/// </summary>
 		/// <param name="plugin">The plugin instance to add.</param>
-		public bool AddPlugin(IPlugin plugin)
+		public bool AddPlugin(AbstractPlugin plugin)
 		{
 			lock (m_pluginsAvailable)
 			{
@@ -85,7 +85,7 @@ namespace SensHub.Server
 				// Look for plugins
 				foreach (var candidate in types)
 				{
-					if (typeof(IPlugin).IsAssignableFrom(candidate))
+					if (typeof(AbstractPlugin).IsAssignableFrom(candidate))
 					{
 						// Make sure we have metadata available
 						if (metadata.GetDescription(candidate) == null)
@@ -103,7 +103,7 @@ namespace SensHub.Server
 						{
 							this.Log().Debug("Creating plugin '{0}.{1}'", candidate.Namespace, candidate.Name);
 							Object instance = Activator.CreateInstance(candidate);
-							AddPlugin((IPlugin)instance);
+							AddPlugin((AbstractPlugin)instance);
 						}
 						catch (Exception ex)
 						{

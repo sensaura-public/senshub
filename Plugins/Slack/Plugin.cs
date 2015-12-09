@@ -7,7 +7,7 @@ using Splat;
 
 namespace SensHub.Extension.Slack
 {
-    public class Plugin : IPlugin, IEnableLogger
+    public class Plugin : AbstractPlugin, IEnableLogger
     {
 		// {C7E8BB44-B05A-4BC6-937D-F0E15001BC57}
 		private static Guid PluginUUID = Guid.Parse("{C7E8BB44-B05A-4BC6-937D-F0E15001BC57}"); 
@@ -20,17 +20,17 @@ namespace SensHub.Extension.Slack
 		/// </summary>
 		public IPluginHost Host { get; private set; }
 
-		public Guid UUID
+		public override Guid UUID
 		{
 			get { return PluginUUID; }
 		}
 
-		public Version Version
+		public override Version Version
 		{
 			get { return PluginVersion; }
 		}
 
-		public bool Initialise(IPluginHost host)
+		public override bool Initialise(IPluginHost host)
 		{
 			// TODO: Implement this correctly
 			Host = host;
@@ -38,7 +38,7 @@ namespace SensHub.Extension.Slack
 			return true;
 		}
 
-		public void Shutdown()
+		public override void Shutdown()
 		{
 			// TODO: Implement this
 		}

@@ -5,21 +5,25 @@ using System.Text;
 
 namespace SensHub.Plugins
 {
-    public interface IPlugin : IDescribed
+    public abstract class AbstractPlugin : IUserObject
     {
-		/// <summary>
-		/// The UUID that uniquely identifies this plugin. This value is used to
-		/// provide a unique reference for the plugin and determines where configuration
-		/// and associated data files for the plugin as stored. The UUID must remain
-		/// constant across different versions of the plugin.
-		/// </summary>
-		Guid UUID { get; }
+        private const UserObjectType MyType = UserObjectType.Plugin;
 
-		/// <summary>
-		/// The version of this plugin. The version information is only used
-		/// for display purposes, no checking or validation is done on the value.
-		/// </summary>
-		Version Version { get; }
+        /// <summary>
+        /// Always returns Plugin
+        /// </summary>
+        public UserObjectType ObjectType { get { return MyType; } }
+
+        /// <summary>
+        /// The unique ID for this plugin.
+        /// </summary>
+        public abstract Guid UUID { get; }
+
+        /// <summary>
+        /// The version of this plugin. The version information is only used
+        /// for display purposes, no checking or validation is done on the value.
+        /// </summary>
+        public abstract Version Version { get; }
 
 		/// <summary>
 		/// Initialise the plugin.
@@ -35,7 +39,7 @@ namespace SensHub.Plugins
 		/// for use later in it's lifetime.
 		/// </param>
 		/// <returns>true on success, false on failure.</returns>
-		bool Initialise(IPluginHost host);
+		public abstract bool Initialise(IPluginHost host);
 
 		/// <summary>
 		/// Shut down the plugin.
@@ -44,6 +48,6 @@ namespace SensHub.Plugins
 		/// extensions, ensure any cached data is saved and revert to
 		/// an inactive state.
 		/// </summary>
-		void Shutdown();
+		public abstract void Shutdown();
     }
 }

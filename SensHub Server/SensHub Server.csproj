@@ -36,6 +36,10 @@
       <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="LevelDB.Net, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\packages\LevelDB.Net.1.1.2\lib\net40\LevelDB.Net.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="M2Mqtt.Net, Version=4.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\M2Mqtt.4.2.0.1\lib\net45\M2Mqtt.Net.dll</HintPath>
       <Private>True</Private>
@@ -66,6 +70,8 @@
     <Compile Include="Http\WebSocketRequestHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="Managers\Configurations.cs" />
+    <Compile Include="Managers\MasterObjectTable.cs" />
     <Compile Include="MetadataManager.cs" />
     <Compile Include="Mqtt\MessageBus.cs" />
     <Compile Include="Mqtt\MqttPlugin.cs" />

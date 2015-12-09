@@ -11,7 +11,7 @@ using Splat;
 
 namespace SensHub.Server.Mqtt
 {
-	public class MqttPlugin : IPlugin, IConfigurable, ISubscriber, IEnableLogger
+	public class MqttPlugin : AbstractPlugin, IConfigurable, ISubscriber, IEnableLogger
 	{
 		/// <summary>
 		/// Possible states for the service
@@ -44,12 +44,12 @@ namespace SensHub.Server.Mqtt
 		private ServiceState m_state;
 
 		#region Properties
-		public Guid UUID
+		public override Guid UUID
 		{
 			get { return m_uuid; }
 		}
 
-		public Version Version
+		public override Version Version
 		{
 			get { return m_version; }
 		}
@@ -178,8 +178,8 @@ namespace SensHub.Server.Mqtt
 		}
 		#endregion
 
-		#region Implementation of IPlugin
-		public bool Initialise(IPluginHost host)
+		#region Implementation of AbstractPlugin
+		public override bool Initialise(IPluginHost host)
 		{
 			// Subscribe ourselves to the Public topic
 			host.Subscribe(host.Public, this);
@@ -187,7 +187,7 @@ namespace SensHub.Server.Mqtt
 			return true;
 		}
 
-		public void Shutdown()
+		public override void Shutdown()
 		{
 			SetState(ServiceState.Disconnected);
 		}

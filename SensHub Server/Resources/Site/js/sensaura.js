@@ -166,24 +166,25 @@ $(document).ready(
       console.log("!! Debug mode is enabled, network setup will not occur.");
       return;
       }
-    if ("WebSocket" in window) {
-      var wsURL = "ws://" + location.hostname + (location.port ? ':' + location.port : ' ') + "/api/";
-      var connection = new WebSocket(wsURL, [ 'senshub' ]);
-      connection.onopen = function() {
-        ws = connection;
-        ws.onmessage = function(e) { recv(e.data); };
-        $("#server-message").text("Connection established");
-        $("#server-message").slideDown();
-        }
-      connection.onerror = function(error) {
-        // Fall back to polling
-        rpcCall("Poll", { }, serverConnected);
-        }
-      }
-    else {
+// TODO: Reinstate websockets later
+//    if ("WebSocket" in window) {
+//      var wsURL = "ws://" + location.hostname + (location.port ? ':' + location.port : ' ') + "/api/";
+//      var connection = new WebSocket(wsURL, [ 'senshub' ]);
+//      connection.onopen = function() {
+//        ws = connection;
+//        ws.onmessage = function(e) { recv(e.data); };
+//        $("#server-message").text("Connection established");
+//        $("#server-message").slideDown();
+//        }
+//      connection.onerror = function(error) {
+//        // Fall back to polling
+//        rpcCall("Poll", { }, serverConnected);
+//        }
+//      }
+//    else {
       // Fall back to polling
       rpcCall("Poll", { }, serverConnected);
-      }
+//      }
     }
   );
 

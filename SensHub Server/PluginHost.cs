@@ -19,11 +19,11 @@ namespace SensHub.Server
 	internal class PluginHost : IPluginHost, IEnableLogger
 	{
 		
-		private IPlugin m_plugin;
+		private AbstractPlugin m_plugin;
 		private IFolder m_data;
 		private IMessageBus m_messageBus;
 
-		public PluginHost(IPlugin plugin)
+		public PluginHost(AbstractPlugin plugin)
 		{
 			m_plugin = plugin;
 			m_messageBus = Locator.Current.GetService<IMessageBus>();

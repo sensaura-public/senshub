@@ -34,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Action.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="ConfigurationValue.cs" />
     <Compile Include="IConfigurable.cs" />
@@ -41,16 +42,18 @@
     <Compile Include="IMessageBus.cs" />
     <Compile Include="ISubscriber.cs" />
     <Compile Include="ITopic.cs" />
+    <Compile Include="IUserObject.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="MessageBuilder.cs" />
     <Compile Include="ObjectConfiguration.cs" />
     <Compile Include="IObjectDescription.cs" />
+    <Compile Include="Source.cs" />
     <Compile Include="Topics.cs" />
     <Compile Include="Utilities\BaseDictionary.cs" />
     <Compile Include="Utilities\Enumeration.cs" />
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="IFolder.cs" />
-    <Compile Include="IPlugin.cs" />
+    <Compile Include="AbstractPlugin.cs" />
     <Compile Include="IPluginHost.cs" />
     <Compile Include="IPackable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
