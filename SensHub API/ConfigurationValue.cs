@@ -13,11 +13,14 @@ namespace SensHub.Plugins
 	{
 		public enum ValueType
 		{
-			TopicValue,
 			StringValue,
+			TopicValue,
+			TextValue,
+			ScriptValue,
 			NumericValue,
 			OptionList,
-			ItemList
+			StringList,
+			ConfigList,
 		}
 
 		public string DisplayName { get; private set; }
@@ -29,6 +32,8 @@ namespace SensHub.Plugins
 		public object DefaultValue { get; private set; }
 
 		public List<IObjectDescription> Options { get; set; }
+
+		public Configuration Subtype { get; set; }
 
 		public ConfigurationValue(string name, ValueType type, object defaultValue, string description)
 		{

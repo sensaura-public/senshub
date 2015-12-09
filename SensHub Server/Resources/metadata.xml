@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <metadata defaultLang="en">
+  <!-- Configuration description for the server (main class) -->
   <class name="Program">
     <configuration>
       <value name="password" type="StringValue" default="">
@@ -29,6 +30,7 @@
       </value>
     </configuration>
   </class>
+  <!-- Configuration description for the MQTT plugin -->
   <class name="Mqtt.MqttPlugin">
     <description>
       <icon image="mqtt.png"/>
@@ -50,5 +52,62 @@
         <text lang="en">The SensHub server identity string.</text>
       </value>
     </configuration>
-    </class>
+  </class>
+  <!-- Configuration description for a single match -->
+  <class name="Rules.Match">
+    <configuration>
+      <value name="field" type="StringValue" default="">
+        <text lang="en">The name of the field to test against.</text>
+      </value>
+      <value name="negate" type="BooleanValue" default="false">
+        <text lang="en">Negate the comparison.</text>
+      </value>
+      <value name="comparison" type="OptionList" default="contains">
+        <text lang="en">How to compare the value.</text>
+        <selection name="contains">
+          <displayname lang="en">Contains</displayname>
+          <shortdescription lang="en">The field contains the text.</shortdescription>
+        </selection>
+        <selection name="startsWith">
+          <displayname lang="en">Starts With</displayname>
+          <shortdescription lang="en">The field starts with the text.</shortdescription>
+        </selection>
+        <selection name="endsWith">
+          <displayname lang="en">Ends With</displayname>
+          <shortdescription lang="en">The field ends with the text.</shortdescription>
+        </selection>
+        <selection name="equals">
+          <displayname lang="en">Equals</displayname>
+          <shortdescription lang="en">The field matches the text exactly.</shortdescription>
+        </selection>
+        <selection name="greaterThan">
+          <displayname lang="en">Greater Than</displayname>
+          <shortdescription lang="en">The field is greater than the value.</shortdescription>
+        </selection>
+        <selection name="lessThan">
+          <displayname lang="en">Less Than</displayname>
+          <shortdescription lang="en">The field is less than the value.</shortdescription>
+        </selection>
+      </value>
+      <value name="value" type="StringValue" default="">
+        <text lang="en">The value to compare against.</text>
+      </value>
+    </configuration>
+  </class>
+  <!-- Configuration description for a filter - a collection of Matches -->
+  <class name="Rules.Filter">
+    <configuration>
+      <value name="matches" type="ConfigList" subtype="Rules.Match">
+        <text lang="en">Required conditions to pass the filter.</text>
+      </value>
+    </configuration>
+  </class>
+  <!-- Configuration description for a script based action -->
+  <class name="Rules.ScriptAction">
+    <configuration>
+      <value name="source" type="ScriptValue" default="">
+        <text lang="en">The source for the script to run.</text>
+      </value>
+    </configuration>
+  </class>
 </metadata>
