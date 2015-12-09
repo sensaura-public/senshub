@@ -166,6 +166,7 @@ $(document).ready(
       var connection = new WebSocket(wsURL, [ 'rpc' ]);
       connection.onopen = function() {
         ws = connection;
+        ws.onmessage = function(e) { recv(e.data); };
         $("#server-message").text("Connection established");
         $("#server-message").slideDown();
         }
@@ -184,7 +185,6 @@ $(document).ready(
 //---------------------------------------------------------------------------
 // Base API interface
 //---------------------------------------------------------------------------
-
 
 function startupError(message) {
   if (!$("#splash-error").is(":visible")) {
@@ -351,18 +351,46 @@ function pageSetup() {
 // UI manipulation
 //---------------------------------------------------------------------------
 
-function doTransition(target) {
-  activePage = target;
-  button = $("#" + activePage + "_button");
-  if(button)
-    button.addClass("active");
-  $("#" + activePage).fadeIn("fast");
+// Create a copy of the node with the given ID
+//
+// The copy will be given the ID 'newID' and any instances of ${oldID} in the
+// content will be renamed as well.
+//
+// Strings with the format ${name} will be replaced with the value of 'name'
+// in the 'vals' object.
+function copyTemplate(oldID, newID, vals) {
+  var copy = $("#" + oldID).clone();
+  copy.attr("id", newID);
+  var html = copy.html();
+  // Replace variables
+  for (var key in vals) {
+    if (vals.hasOwnProperty(key)) {
+      var re = new RegExp("\\${" + key + "}", "g");
+      html = html.replace(re, vals[key]);
+      }
+    }
+  // Also replace the ID
+  var re = new RegExp("\\${" + oldID + "}", "g");
+  html = html.replace(re, newID);
+  // Update the copy and return it
+  copy.html(html);
+  return copy;
   }
 
+// Activate the selected page if it is not already active
 function setActivePage(target) {
   // Are we already active?
   if(activePage==target)
     return;
+  // The transitioning function
+  doTransition = function(target) {
+    activePage = target;
+    button = $("#" + activePage + "_button");
+    if(button)
+      button.addClass("active");
+    $("#" + activePage).fadeIn("fast");
+    }
+  // Switch the page
   if(activePage!=="") {
     button = $("#" + activePage + "_button");
     if(button)
