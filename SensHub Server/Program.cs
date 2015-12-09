@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using SensHub.Plugins;
 using SensHub.Server.Http;
 using SensHub.Server.Mqtt;
+using SensHub.Server.Managers;
 using CommandLine;
 using Splat;
 

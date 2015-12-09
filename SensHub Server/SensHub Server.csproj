@@ -72,13 +72,13 @@
     <Compile Include="Logger.cs" />
     <Compile Include="Managers\Configurations.cs" />
     <Compile Include="Managers\MasterObjectTable.cs" />
-    <Compile Include="MetadataManager.cs" />
+    <Compile Include="Managers\MetadataManager.cs" />
     <Compile Include="Mqtt\MessageBus.cs" />
     <Compile Include="Mqtt\MqttPlugin.cs" />
     <Compile Include="Mqtt\Topic.cs" />
     <Compile Include="ObjectPacker.cs" />
-    <Compile Include="PluginHost.cs" />
-    <Compile Include="PluginManager.cs" />
+    <Compile Include="Managers\PluginHost.cs" />
+    <Compile Include="Managers\PluginManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

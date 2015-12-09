@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
 
-namespace SensHub.Server
+namespace SensHub.Server.Managers
 {
 	/// <summary>
 	/// This class manages the plugins.

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
 
-namespace SensHub.Server
+namespace SensHub.Server.Managers
 {
 	/// <summary>
 	/// This class is responsible for loading the 'metadata' for plugins and
