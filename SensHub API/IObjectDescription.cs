@@ -16,14 +16,9 @@ namespace SensHub.Plugins
 	public interface IObjectDescription : IPackable
 	{
 		/// <summary>
-		/// The name of this object. Used for referencing and lookup.
+		/// Provide a 48x48 px icon to represent this class.
 		/// </summary>
-		string Name { get; }
-
-		/// <summary>
-		/// Provide a 64x64 px icon to represent this class.
-		/// </summary>
-		IBitmap Icon { get; }
+		string Icon { get; }
 
 		/// <summary>
 		/// Provide a short name for the class.

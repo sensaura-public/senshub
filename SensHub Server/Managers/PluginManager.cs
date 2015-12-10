@@ -31,6 +31,7 @@ namespace SensHub.Server.Managers
 					this.Log().Warn("Plugin with UUID '{0}' is already registered.", plugin.UUID);
 					return false;
 				}
+                this.Log().Debug("Adding plugin {0} (ID = '{1}')", plugin.GetType().Name, plugin.UUID);
 				m_pluginsAvailable[plugin.UUID] = plugin;
 			}
 			return true;
@@ -91,8 +92,8 @@ namespace SensHub.Server.Managers
 						try
 						{
 							this.Log().Debug("Creating plugin '{0}.{1}'", candidate.Namespace, candidate.Name);
-							Object instance = Activator.CreateInstance(candidate);
-							mot.AddInstance((AbstractPlugin)instance);
+							AbstractPlugin instance = (AbstractPlugin)Activator.CreateInstance(candidate);
+                            m_pluginsAvailable[instance.UUID] = instance;
 						}
 						catch (Exception ex)
 						{
@@ -116,7 +117,8 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		public void InitialisePlugins()
 		{
-			lock(m_pluginsAvailable) 
+            MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
+            lock (m_pluginsAvailable) 
 			{
 				lock(m_pluginsEnabled) 
 				{
@@ -127,7 +129,9 @@ namespace SensHub.Server.Managers
 						PluginHost host = new PluginHost(m_pluginsAvailable[uuid]);
 						if (host.EnablePlugin())
 						{
-							m_pluginsEnabled[uuid] = host;
+                            this.Log().Debug("Enabled plugin {0} (ID = '{1}')", m_pluginsAvailable[uuid].GetType().Name, m_pluginsAvailable[uuid].UUID);
+                            m_pluginsEnabled[uuid] = host;
+                            mot.AddInstance(m_pluginsAvailable[uuid]);
 						}
 					}
 				}

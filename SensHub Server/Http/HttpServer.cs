@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using SensHub.Plugins;
 using SensHub.Server;
+using SensHub.Server.Managers;
 using Splat;
 
 namespace SensHub.Server.Http
@@ -75,7 +76,6 @@ namespace SensHub.Server.Http
         /// instance running as a caching proxy. To facilitate this we unpack
         /// the site from resources to a directory so it can access them.
         /// </summary>
-        /// <param name="siteDir"></param>
         public void UnpackSite()
         {
             // Make sure we have an empty directory to start with
@@ -99,6 +99,37 @@ namespace SensHub.Server.Http
                     Stream target = File.Create(Path.Combine(m_sitePath, fileName));
                     source.CopyTo(target);
                     target.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unpack images provided by the various plugins to the site directory
+        /// </summary>
+        public void UnpackImages()
+        {
+            // Make sure we have an empty directory to start with
+            string imagePath = Path.Combine(m_sitePath, "img/plugins");
+            if (Directory.Exists(imagePath))
+                Directory.Delete(imagePath, true);
+            Directory.CreateDirectory(imagePath);
+            // Walk through the assemblies unpacking the Images
+            MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
+            foreach (Assembly assembly in mot.Assemblies)
+            {
+                string prefix = assembly.GetName().Name + ".Resources.Images.";
+                foreach (var resourceName in assembly.GetManifestResourceNames())
+                {
+                    if (!resourceName.StartsWith(prefix))
+                        continue;
+                    // TODO: Should limit this to image files only
+                    // Copy the resource in
+                    using (Stream source = assembly.GetManifestResourceStream(resourceName))
+                    {
+                        Stream target = File.Create(Path.Combine(imagePath, assembly.GetName().Name + "." + resourceName.Substring(prefix.Length)));
+                        source.CopyTo(target);
+                        target.Close();
+                    }
                 }
             }
         }

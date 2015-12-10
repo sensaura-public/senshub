@@ -137,6 +137,16 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Site\js\jqueryjson.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\img\icons\action.png" />
+    <EmbeddedResource Include="Resources\Site\img\icons\plugin.png" />
+    <EmbeddedResource Include="Resources\Site\img\icons\source.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\lua.png" />
+    <EmbeddedResource Include="Resources\Images\mqtt.png" />
+    <EmbeddedResource Include="Resources\Images\webhooks.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

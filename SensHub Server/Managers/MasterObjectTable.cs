@@ -28,6 +28,8 @@ namespace SensHub.Server.Managers
 		private Dictionary<string, IObjectDescription> m_descriptions = new Dictionary<string, IObjectDescription>();
 		private Dictionary<string, ObjectConfiguration> m_configinfo = new Dictionary<string, ObjectConfiguration>();
 
+        public List<Assembly> Assemblies { get; private set; }
+
 		/// <summary>
 		/// Constructor
 		/// </summary>
@@ -36,6 +38,7 @@ namespace SensHub.Server.Managers
 			m_instances = new Dictionary<Guid, IUserObject>();
 			m_descriptions = new Dictionary<string, IObjectDescription>();
 			m_configinfo = new Dictionary<string, ObjectConfiguration>();
+            Assemblies = new List<Assembly>();
         }
 
         /// <summary>
@@ -91,10 +94,16 @@ namespace SensHub.Server.Managers
 				// TODO: Make sure we have a description and a configuration for the instance
 				if (GetDescription(instance.UUID) != null)
 				{
-					if (GetConfigurationDescription(instance.UUID) != null)
-						return true;
-					else
-						this.Log().Warn("Object '{0}' has no configuration information. Will not add.", instance.UUID);
+                    // Does this instance have configuration information?
+                    if ((instance as IConfigurable) != null)
+                    {
+                        if (GetConfigurationDescription(instance.UUID) == null)
+                            this.Log().Warn("Object '{0}' has no configuration information. Will not add.", instance.UUID);
+                        else
+                            return true;
+                    }
+                    else
+                        return true;
 				}
 				else
 					this.Log().Warn("Object '{0}' has no description information. Will not add.", instance.UUID);
@@ -165,6 +174,7 @@ namespace SensHub.Server.Managers
 		/// <param name="assembly"></param>
 		public void AddMetaData(Assembly assembly)
 		{
+            Assemblies.Add(assembly);
 			Stream source = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Resources.metadata.xml");
 			if (source == null)
 			{

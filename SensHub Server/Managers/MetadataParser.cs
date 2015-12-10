@@ -23,6 +23,9 @@ namespace SensHub.Server.Managers
 	/// </summary>
 	static class MetadataParser
 	{
+        // Base image URL
+        private const string BaseImageUrl = "img/plugins/";
+
 		// Tag names
 		private const string MetadataTag = "metadata";
 		private const string ClassTag = "class";
@@ -43,16 +46,14 @@ namespace SensHub.Server.Managers
 		private const string LanguageAttribute = "lang";
 		private const string TypeAttribute = "type";
 		private const string DefaultAttribute = "default";
+        private const string ImageAttribute = "image";
 
 		/// <summary>
 		/// Simple implementation of IObjectDescription
 		/// </summary>
 		private class ObjectDescription : IObjectDescription
 		{
-
-			public string Name { get; internal set; }
-
-			public IBitmap Icon { get; internal set; }
+			public string Icon { get; internal set; }
 
 			public string DisplayName { get; internal set; }
 
@@ -63,7 +64,7 @@ namespace SensHub.Server.Managers
 			public IDictionary<string, object> Pack()
 			{
 				Dictionary<string, object> result = new Dictionary<string, object>();
-				result["Name"] = Name;
+				result["Icon"] = Icon;
 				result["DisplayName"] = DisplayName;
 				result["Description"] = Description;
 				result["DetailedDescription"] = DetailedDescription;
@@ -116,7 +117,7 @@ namespace SensHub.Server.Managers
 						{
 							string className = baseName + "." + attr.Value;
 							LogHost.Default.Debug("Loading class definition for '{0}'", className);
-							ProcessClass(baseName + "." + attr.Value, defaultLanguage, (XmlElement)node);
+							ProcessClass(baseName, baseName + "." + attr.Value, defaultLanguage, (XmlElement)node);
 						}
 					}						
 				}
@@ -148,8 +149,7 @@ namespace SensHub.Server.Managers
 			StringBuilder sb = new StringBuilder();
 			if (count == 0) 
 			{
-				LogHost.Default.Warn("No text elements defined for this node.");
-				sb.Append("(unspecified)");
+				LogHost.Default.Info("No text elements defined for this node.");
 			}
 			foreach (XmlElement text in items)
 			{
@@ -217,10 +217,7 @@ namespace SensHub.Server.Managers
 						}
 						ObjectDescription optionDescription = ProcessDescription(defaultLang, optionElement);
 						if (optionDescription != null) 
-						{
-							optionDescription.Name = attr.Value;
 							optionInfo.Add(optionDescription);
-						}
 					}
 					configValue.Options = optionInfo;
 				}
@@ -244,17 +241,27 @@ namespace SensHub.Server.Managers
 			description.DisplayName = GetLocalisedText(defaultLang, parent, DisplayNameTag);
 			description.Description = GetLocalisedText(defaultLang, parent, ShortDescriptionTag);
 			description.DetailedDescription = GetLocalisedText(defaultLang, parent, LongDescriptionTag);
-			// TODO: Handle the icon differently
-			return description;
+            // TODO: Handle the icon differently
+            var items = from node in parent.ChildNodes.Cast<XmlElement>()
+                        where node.Name == IconTag
+                        select node;
+            int count = items.Count();
+            if (count > 0)
+            {
+                XmlAttribute attr = (XmlAttribute)items.First().Attributes.GetNamedItem(ImageAttribute);
+                description.Icon = attr.Value.Trim();
+            }
+            return description;
 		}
 
 		/// <summary>
 		/// Extract information for a class.
 		/// </summary>
+        /// <param name="assembly"></param>
 		/// <param name="className"></param>
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
-		private static void ProcessClass(string className, string defaultLang, XmlElement element)
+		private static void ProcessClass(string assembly, string className, string defaultLang, XmlElement element)
 		{
 			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
 			// Process configuration first
@@ -279,7 +286,10 @@ namespace SensHub.Server.Managers
 			else if (count == 1)
 			{
 				LogHost.Default.Debug("Loading description definition for class '{0}'", className);
-				mot.AddDescription(className, ProcessDescription(defaultLang, (XmlElement)items.First()));
+                ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)items.First());
+                if ((description.Icon != null) && (description.Icon.Length > 0))
+                    description.Icon = BaseImageUrl + assembly + "." + description.Icon;
+                mot.AddDescription(className, description);
 			}
 		}
 		#endregion

@@ -8,10 +8,9 @@ namespace SensHub.Plugins
 {
 	/// <summary>
 	/// This interface is used to mark classes that can describe themselves.
-	/// 
-	/// The information provided by the interface is used in the UI so strings
-	/// must be human readable and should be in the language specified by the
-	/// servers locale.
+	///
+    /// Classes that use this interface must have a matching 'description'
+    /// entry in the metadata.xml file for the assembly.
 	/// </summary>
 	public interface IDescribed
 	{

@@ -24,7 +24,8 @@ namespace SensHub.Server.Scripting
 
 		public override bool Initialise(IPluginHost host)
 		{
-			return host.RegisterActionFactory(new ScriptActionFactory());
+            //return host.RegisterActionFactory(new ScriptActionFactory());
+            return true;
 		}
 
 		public override void Shutdown()

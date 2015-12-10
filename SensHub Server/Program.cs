@@ -119,6 +119,7 @@ namespace SensHub.Server
             // Unpack the static site contents and start the HTTP server
 			if (options.WebDirectory == null)
 				httpServer.UnpackSite();
+            httpServer.UnpackImages();
 			httpServer.Start();
 			// The MessageBus will run on the main thread until a shutdown is requested
 			System.Console.WriteLine("Server running - press any key to quit.");
