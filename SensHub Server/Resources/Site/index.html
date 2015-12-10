@@ -14,6 +14,7 @@
       <script type="text/javascript" src="js/jquery.js"></script>
       <script type="text/javascript" src="js/jqueryjson.js"></script>
       <script type="text/javascript" src="js/materialize.js"></script>
+      <script type="text/javascript" src="js/markdown.js"></script>
       <script type="text/javascript" src="js/sensaura.js"></script>
       <!-- Navigation -->
       <header class="navbar-fixed">
@@ -25,7 +26,6 @@
               <li id="actions_button"><a href="#" onClick='setActivePage("actions")'>Actions</a></li>
               <li id="sources_button"><a href="#" onClick='setActivePage("sources")'>Sources</a></li>
               <li id="plugins_button"><a href="#" onClick='setActivePage("plugins")'>Plugins</a></li>
-              <li><a href="#"><i class="material-icons grey-text">notifications</i></a></li>
               <li><a href="#"><i class="material-icons">settings</i></a></li>
             </ul>
           </div>
@@ -126,15 +126,15 @@
           <div id="template-plugin" class="col s12 m6 l4 plugin">
             <div class="z-depth-2 padding-small margin-small">
               <div class="header">
-                <div class="left"><img src="img/${id}/${icon}"></div>
-                <div class="title">${displayname}</div>
+                <div class="left"><img src="${Icon}"></div>
+                <div class="title">${DisplayName}</div>
                 <div class="tools right-align">
-                  <a class="modal-trigger" href="#" onclick="$('#${template-plugin}-long').openModal();"><i class="small material-icons">info</i></a>
-                  <a href="#"><i class="small material-icons">settings</i></a>
+                  <a class="modal-trigger" href="#" onclick="$('#${template-plugin}-long').openModal();"><i class="tiny material-icons">info</i></a>
+                  <a href="#"><i class="tiny material-icons">settings</i></a>
                 </div>
               </div>
               <div class="description">
-                ${shortdescription}
+                ${Description}
               </div>
               <div class="tools right-align">
                 <input type="checkbox" id="${template-plugin}-enabled" class="filled-in" checked="checked"/>
@@ -143,8 +143,8 @@
               <!-- Modal for long description -->
               <div id="${template-plugin}-long" class="modal modal-fixed-footer">
                 <div class="modal-content">
-                  <h4>${displayname}</h4>
-                  <p>${longdescription}</p>
+                  <h4>${DisplayName}</h4>
+                  <p>${DetailedDescription}</p>
                 </div>
                 <div class="modal-footer">
                   <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Close</a>

@@ -52,7 +52,6 @@ function internalUnsubscribe(ref) {
 var ws = null;
 var seq = 0;
 var pending = { };
-var serverOK = false;
 
 function recv(data) {
   console.log("Received data (RPC or WS)");
@@ -155,7 +154,6 @@ function rpcCall(method, args, onComplete) {
 function serverConnected(status, data) {
   if(!status)
     return;
-  serverOK = true;
   pageSetup()
   }
 
@@ -200,67 +198,6 @@ function startupError(message) {
     }
   }
 
-function getServerState() {
-  // What we need to do:
-  //   Get the server state (all actions, action types, etc)
-  //   Register for events giving changes to the state
-  //   Register for errors and warnings
-  //   Display the home page
-  var callCount = 3;
-  var onSuccess = function(method, data) {
-    callCount = callCount - 1;
-    if (callCount == 0)
-      setActivePage("home");
-    }
-  var onFailure = function(method, message) {
-    if (!$("#splash-error").is(":visible")) {
-      startupError(message);
-      }
-    }
-  // Get our server state
-  shAPI(
-    "GetServerState",
-    { },
-    function(method, data) { onSuccess(method, data); updateState(data); },
-    onFailure
-    );
-  // Subscribe to state updates
-  subscribe(
-    "private/server/state",
-    onServerStateChange,
-    onSuccess,
-    onFailure
-    );
-  // Subscribe to notifications
-  subscribe(
-    "private/server/notifications",
-    onServerNotification,
-    onSuccess,
-    onFailure
-    );
-  }
-
-function serverInit(password) {
-  shAPI(
-    "Authenticate",
-    {
-      password: password
-    },
-    function(method, result) {
-      if(!result) {
-        $("#splash-login").slideDown();
-        if(password!=="")
-          $("#login-message").text("Authentication failed. Please check your password.");
-        }
-      else
-        getServerState();
-      },
-    function(method, message) {
-      startupError(message);
-      }
-    );
-  }
-
 function subscribe(topic, subscriber, onComplete) {
   // Assume it is going to work and get a reference
   ref = internalSubscribe(topic, subscriber);
@@ -288,11 +225,58 @@ function unsubscribe(ref) {
   }
 
 //---------------------------------------------------------------------------
+// Utilities
+//---------------------------------------------------------------------------
+
+// Perfom 'action' on every entry in obj
+function foreach(obj, action) {
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key))
+      action(key, obj[key]);
+    }
+  }
+
+function clone(obj) {
+  result = { };
+  foreach(obj, function(key, val) { result[key] = val });
+  return result;
+  }
+
+//---------------------------------------------------------------------------
+// Object updates
+//---------------------------------------------------------------------------
+
+function addPlugin(id, info) {
+  // Rebuild the info object into something more suitable for the template
+  plugin = clone(info);
+  // Convert text fields to HTML with markdown
+  for (var key in [ "shortdescription", "longdescription" ]) {
+    if (plugin[key])
+      plugin[key] = markdown.toHTML(plugin[key]);
+    }
+  // TODO: Turn enabled from boolean to a checkbox style
+  // Now add the plugin
+  $widget = copyTemplate("template-plugin", id, plugin);
+  $("#plugins").prepend($widget);
+  }
+
+function updatePlugin(id, info) {
+  }
+
+//---------------------------------------------------------------------------
 // Initial page setup
 //---------------------------------------------------------------------------
 
+var serverState = null;
+
 function updateState(state) {
-  // TODO: Update the UI with the state information
+  // Update the UI with the state information
+  serverState = state;
+  // Build the plugins page
+  foreach(serverState["Plugin"], function(id, description) {
+    console.log("Setting up plugin " + id);
+    addPlugin(id, description);
+    });
   }
 
 function onServerNotification(topic, message) {
@@ -369,12 +353,10 @@ function copyTemplate(oldID, newID, vals) {
   copy.attr("id", newID);
   var html = copy.html();
   // Replace variables
-  for (var key in vals) {
-    if (vals.hasOwnProperty(key)) {
-      var re = new RegExp("\\${" + key + "}", "g");
-      html = html.replace(re, vals[key]);
-      }
-    }
+  foreach(vals, function(key, value) {
+    var re = new RegExp("\\${" + key + "}", "g");
+    html = html.replace(re, value);
+    });
   // Also replace the ID
   var re = new RegExp("\\${" + oldID + "}", "g");
   html = html.replace(re, newID);
