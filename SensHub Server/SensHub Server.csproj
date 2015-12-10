@@ -57,7 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ConfigurationImpl.cs" />
+    <Compile Include="Managers\ConfigurationImpl.cs" />
     <Compile Include="FileSystem.cs" />
     <Compile Include="Http\HttpRequestHandler.cs" />
     <Compile Include="Http\HttpServer.cs" />
@@ -70,9 +70,8 @@
     <Compile Include="Http\WebSocketRequestHandler.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Managers\Configurations.cs" />
     <Compile Include="Managers\MasterObjectTable.cs" />
-    <Compile Include="Managers\MetadataManager.cs" />
+    <Compile Include="Managers\MetadataParser.cs" />
     <Compile Include="Mqtt\MessageBus.cs" />
     <Compile Include="Mqtt\MqttPlugin.cs" />
     <Compile Include="Mqtt\Topic.cs" />

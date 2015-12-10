@@ -13,7 +13,7 @@ namespace SensHub.Plugins
 	/// Descriptions provide the information needed to display the
 	/// object in the UI.
 	/// </summary>
-	public interface IObjectDescription
+	public interface IObjectDescription : IPackable
 	{
 		/// <summary>
 		/// The name of this object. Used for referencing and lookup.

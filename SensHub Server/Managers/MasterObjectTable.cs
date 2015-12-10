@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,22 +8,33 @@ using System.Text;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Server;
+using Splat;
 
 namespace SensHub.Server.Managers
 {
     /// <summary>
     /// This class manages all the IUserObject instances in the system
+	/// 
+	/// The master object table maintains information about all IUserObject
+	/// instances that are active in the running system. It provides a
+	/// single source for all information about these objects - descriptions,
+	/// configuration information and configuration data.
     /// </summary>
-    public class MasterObjectTable : IDictionary<Guid, IUserObject>, IPackable
+    public class MasterObjectTable : IPackable, IEnableLogger
     {
-        /// <summary>
-        /// Access the configuration information for objects based on ID
-        /// </summary>
-        public Configurations Configurations { get; private set; }
+		//--- Instance variables
+		private Dictionary<Guid, IUserObject> m_instances;
+		private Dictionary<string, IObjectDescription> m_descriptions = new Dictionary<string, IObjectDescription>();
+		private Dictionary<string, ObjectConfiguration> m_configinfo = new Dictionary<string, ObjectConfiguration>();
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
         public MasterObjectTable()
         {
-            Configurations = new Configurations();
+			m_instances = new Dictionary<Guid, IUserObject>();
+			m_descriptions = new Dictionary<string, IObjectDescription>();
+			m_configinfo = new Dictionary<string, ObjectConfiguration>();
         }
 
         /// <summary>
@@ -30,109 +43,242 @@ namespace SensHub.Server.Managers
         /// <returns></returns>
         public IDictionary<string, object> Pack()
         {
-            throw new NotImplementedException();
-        }
+			Dictionary<string, object> mot = new Dictionary<string, object>();
+			// Add entries for all types
+			foreach (string type in Enum.GetNames(typeof(UserObjectType)))
+				mot[type] = new Dictionary<string, object>();
+			// Now add all the instances
+			lock (m_instances)
+			{
+				foreach (IUserObject instance in m_instances.Values)
+				{
+					// We just want the description for each object
+					IDictionary<string, object> detail = GetDescription(instance.UUID).Pack();
+					// For IUserCreatableObjects we add the parent as well
+					IUserCreatableObject creatable = instance as IUserCreatableObject;
+					if (creatable != null)
+						detail["ParentUUID"] = creatable.ParentUUID.ToString();
+					// Add it to the appropriate spot
+					Dictionary<string, object> container = mot[instance.ObjectType.ToString()] as Dictionary<string, object>;
+					container[instance.UUID.ToString()] = detail;
+				}
+			}
+			// All done
+			return mot;
+		}
 
-        #region Implementation of IDictionary<Guid, IUserObject>
-        public IUserObject this[Guid key]
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
+		#region Initial Setup
+		/// <summary>
+		/// Add an object instance to the master table
+		/// </summary>
+		/// <param name="instance"></param>
+		public void AddInstance(IUserObject instance)
+		{
+			lock (m_instances)
+			{
+				if (m_instances.ContainsKey(instance.UUID))
+				{
+					if (m_instances[instance.UUID] != instance)
+						this.Log().Warn("Object '{0}' is already registered with a different instance.", instance.UUID);
+				}
+				else
+				{
+					m_instances[instance.UUID] = instance;
+					// TODO: Make sure we have a description and a configuration for the instance
+				}
+			}
+		}
 
-            set
-            {
-                throw new NotImplementedException();
-            }
-        }
+		/// <summary>
+		/// Remove an instance from the master table.
+		/// </summary>
+		/// <param name="uuid"></param>
+		public bool RemoveInstance(Guid uuid)
+		{
+			lock (m_instances)
+			{
+				if (!m_instances.ContainsKey(uuid))
+					return false;
+				// Get the instance and see what other steps are needed
+				IUserObject instance = m_instances[uuid];
+				if (!instance.ObjectType.IsDeletable())
+					return false;
+				// TODO: Remove the configuration
+				// TODO: Remove the description
+				// Finally we need to remove the instance
+				m_instances.Remove(uuid);
+				return true;
+			}
+		}
 
-        public int Count
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+		/// <summary>
+		/// Add a description for a given class name (or ID)
+		/// </summary>
+		/// <param name="clsName"></param>
+		/// <param name="description"></param>
+		public void AddDescription(string clsName, IObjectDescription description)
+		{
+			lock (m_descriptions)
+			{
+				if (m_descriptions.ContainsKey(clsName))
+					this.Log().Warn("Description already registered for class '{0}'", clsName);
+				else
+					m_descriptions[clsName] = description;
+			}
+		}
 
-        public bool IsReadOnly
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+		/// <summary>
+		/// Add a configuration description for a given class name
+		/// </summary>
+		/// <param name="clsName"></param>
+		/// <param name="configuration"></param>
+		public void AddConfigurationDescription(string clsName, ObjectConfiguration configuration)
+		{
+			lock (m_configinfo)
+			{
+				if (m_configinfo.ContainsKey(clsName))
+					this.Log().Warn("Configuration information already registered for class '{0}'", clsName);
+				else
+					m_configinfo[clsName] = configuration;
+			}
+		}
 
-        public ICollection<Guid> Keys
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+		/// <summary>
+		/// Add all the metadata (descriptions and configuration descriptions)
+		/// from an assembly.
+		/// </summary>
+		/// <param name="assembly"></param>
+		public void AddMetaData(Assembly assembly)
+		{
+			Stream source = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Resources.metadata.xml");
+			if (source == null)
+			{
+				LogHost.Default.Warn("Could not find metadata resource for assembly {0}.", assembly.GetName().Name);
+				return;
+			}
+			MetadataParser.LoadFromStream(assembly.GetName().Name, source);
+		}
+		#endregion
 
-        public ICollection<IUserObject> Values
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+		#region General Access
+		/// <summary>
+		/// Get an object instance given a UUID
+		/// </summary>
+		/// <param name="forInstance"></param>
+		/// <returns></returns>
+		public IUserObject GetInstance(Guid forInstance)
+		{
+			lock (m_instances)
+			{
+				if (!m_instances.ContainsKey(forInstance))
+					return null;
+				return m_instances[forInstance];
+			}
+		}
 
-        public void Add(KeyValuePair<Guid, IUserObject> item)
-        {
-            throw new NotImplementedException();
-        }
+		/// <summary>
+		/// Get an object instance given a UUID
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="forInstance"></param>
+		/// <returns></returns>
+		public T GetInstance<T>(Guid forInstance) where T : IUserObject
+		{
+			IUserObject instance = GetInstance(forInstance);
+			if (typeof(T).IsAssignableFrom(instance.GetType()))
+				return (T)instance;
+			return default(T);
+		}
 
-        public void Add(Guid key, IUserObject value)
-        {
-            throw new NotImplementedException();
-        }
+		/// <summary>
+		/// Get the description for the instance
+		/// </summary>
+		/// <param name="forInstance"></param>
+		/// <returns></returns>
+		public IObjectDescription GetDescription(Guid forInstance)
+		{
+			IUserObject instance = GetInstance(forInstance);
+			if (instance == null)
+				return null;
+			lock (m_descriptions)
+			{
+				if (instance is IUserCreatableObject)
+				{
+					if (!m_descriptions.ContainsKey(instance.UUID.ToString()))
+					{
+						this.Log().Warn("Object '{0}' exists but has no description.", instance.UUID);
+						return null;
+					}
+					return m_descriptions[instance.UUID.ToString()];
+				}
+				// Use the fully qualified class name to get the description
+				string fqcn = instance.GetType().Namespace + "." + instance.GetType().Name;
+				if (!m_descriptions.ContainsKey(fqcn))
+				{
+					this.Log().Warn("Expected to find description for class '{0}'.", fqcn);
+					return null;
+				}
+				return m_descriptions[fqcn];
+			}
+		}
 
-        public void Clear()
-        {
-            throw new NotImplementedException();
-        }
+		/// <summary>
+		/// Get the configuration for the instance
+		/// </summary>
+		/// <param name="forInstance"></param>
+		/// <returns></returns>
+		public Configuration GetConfiguration(Guid forInstance)
+		{
+			IUserObject instance = GetInstance(forInstance);
+			if (instance == null)
+			{
+				this.Log().Warn("Requested configuration for non-existant object '{0}'", forInstance);
+				return null;
+			}
+			IConfigurable configurable = instance as IConfigurable;
+			if (configurable == null)
+			{
+				this.Log().Warn("Requested configuration for unconfigurable object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
+				return null;
+			}
+			ObjectConfiguration configuration = GetConfigurationDescription(forInstance);
+			if (configuration == null) {
+				this.Log().Warn("No configuration description for object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
+				return null;
+			}
+			return ConfigurationImpl.Load(forInstance.ToString() + ".json", configuration);
+		}
 
-        public bool Contains(KeyValuePair<Guid, IUserObject> item)
-        {
-            throw new NotImplementedException();
-        }
+		/// <summary>
+		/// Get the configuration description for the instance
+		/// </summary>
+		/// <param name="forInstance"></param>
+		/// <returns></returns>
+		public ObjectConfiguration GetConfigurationDescription(Guid forInstance)
+		{
+			IUserObject instance = GetInstance(forInstance);
+			if (instance == null)
+				return null;
+			// User creatable object use the parent to provide the description
+			if (instance is IUserCreatableObject)
+				return GetConfigurationDescription((instance as IUserCreatableObject).ParentUUID);
+			// Look it up
+			lock (m_configinfo)
+			{
+				// Use the fully qualified class name to get the config info
+				string fqcn = instance.GetType().Namespace + "." + instance.GetType().Name;
+				if (!m_configinfo.ContainsKey(fqcn))
+				{
+					this.Log().Warn("Could not find configuration information for class '{0}'", fqcn);
+					return null;
+				}
+				return m_configinfo[fqcn];
+			}
+		}
+		#endregion
 
-        public bool ContainsKey(Guid key)
-        {
-            throw new NotImplementedException();
-        }
+		#region RPC Interface
+		#endregion
 
-        public void CopyTo(KeyValuePair<Guid, IUserObject>[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerator<KeyValuePair<Guid, IUserObject>> GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Remove(KeyValuePair<Guid, IUserObject> item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Remove(Guid key)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool TryGetValue(Guid key, out IUserObject value)
-        {
-            throw new NotImplementedException();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-        #endregion
-    }
+	}
 }

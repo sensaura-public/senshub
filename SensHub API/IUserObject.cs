@@ -11,16 +11,40 @@ namespace SensHub.Plugins
     /// </summary>
     public enum UserObjectType
     {
+		Server,
         Plugin,
         Trigger,
-        TriggerFactory,
-        Filter,
+		Filter,
+		Action,
+		Source,
+		TriggerFactory,
         FilterFactory,
-        Action,
         ActionFactory,
-        Source,
         SourceFactory
     }
+
+	static public class UserObjectTypeExtensions
+	{
+		/// <summary>
+		/// Test for factory classes
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static bool IsFactory(this UserObjectType type)
+		{
+			return type >= UserObjectType.TriggerFactory;
+		}
+
+		/// <summary>
+		/// Can this object type be deleted by the user?
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
+		public static bool IsDeletable(this UserObjectType type)
+		{
+			return !(type.IsFactory() || (type == UserObjectType.Server) || (type == UserObjectType.Plugin));
+		}
+	}
 
     /// <summary>
     /// Base interface for objects that are displayed to the user.

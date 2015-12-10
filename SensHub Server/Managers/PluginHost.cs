@@ -118,13 +118,14 @@ namespace SensHub.Server.Managers
 			}
 			if (initialised)
 			{
+				MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
+				mot.AddInstance(m_plugin);
+				// Apply configuration if needed
 				IConfigurable configurable = m_plugin as IConfigurable;
 				if (configurable != null)
 				{
-					// Get the configuration for this plugin
-					MetadataManager metadata = Locator.Current.GetService<MetadataManager>();
-					ObjectConfiguration description = metadata.GetConfiguration(m_plugin.GetType());
-					ConfigurationImpl configuration = ConfigurationImpl.Load(m_plugin.UUID.ToString() + ".json", description);
+					ObjectConfiguration description = mot.GetConfigurationDescription(m_plugin.UUID);
+					ConfigurationImpl configuration = (ConfigurationImpl)mot.GetConfiguration(m_plugin.UUID);
 					try
 					{
 						configurable.ApplyConfiguration(configuration);

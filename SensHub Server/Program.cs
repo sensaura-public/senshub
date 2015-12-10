@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using SensHub.Plugins;
@@ -10,8 +11,30 @@ using Splat;
 
 namespace SensHub.Server
 {
-	class Program
+	class Program : IUserObject, IConfigurable
 	{
+		private static Guid MyUUID = Guid.Parse("{377ECFA2-2B36-4BBF-8F3F-66C0582DFED8}");
+		private const UserObjectType MyType = UserObjectType.Server;
+
+		#region Implementation of IUserObject
+		public System.Guid UUID
+		{
+			get { return MyUUID; }
+		}
+
+		public UserObjectType ObjectType
+		{
+			get { return MyType; }
+		}
+		#endregion
+
+		#region Implementation of IConfigurable
+		public void ApplyConfiguration(Configuration configuration)
+		{
+			throw new NotImplementedException();
+		}
+		#endregion
+
 		// Define a class to receive parsed values
 		class Options
 		{
@@ -57,14 +80,17 @@ namespace SensHub.Server
 			// Make it globally available.
 			FileSystem fs = new FileSystem(options.StorageDirectory);
 			Locator.CurrentMutable.RegisterConstant(fs, typeof(FileSystem));
-			// Set up the metadata manager and load the metadata for this assembly
-			MetadataManager metadata = new MetadataManager();
-			Locator.CurrentMutable.RegisterConstant(metadata, typeof(MetadataManager));
-			metadata.LoadFromAssembly(Assembly.GetExecutingAssembly());
+			// Set up the Master Object Table
+			MasterObjectTable mot = new MasterObjectTable();
+			Locator.CurrentMutable.RegisterConstant(mot, typeof(MasterObjectTable));
+			mot.AddMetaData(Assembly.GetExecutingAssembly());
+			// TODO: Create and add the server instance
+			Program server = new Program();
+			mot.AddInstance(server);
             // Load the server configuration and make it globally available
             ConfigurationImpl serverConfig = ConfigurationImpl.Load(
                 "SensHub.json",
-                metadata.GetConfiguration<Program>()
+                mot.GetConfigurationDescription(server.UUID)
                 );
             Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
 			// Set up the MessageBus
@@ -99,5 +125,6 @@ namespace SensHub.Server
 			plugins.ShutdownPlugins();
             httpServer.Stop();
         }
+
 	}
 }

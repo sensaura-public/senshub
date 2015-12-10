@@ -21,7 +21,7 @@ namespace SensHub.Server.Managers
 	/// This data is stored in a 'metadata.xml' file in the resource fork
 	/// of each assembly.
 	/// </summary>
-	public class MetadataManager : IEnableLogger
+	static class MetadataParser
 	{
 		// Tag names
 		private const string MetadataTag = "metadata";
@@ -60,14 +60,15 @@ namespace SensHub.Server.Managers
 
 			public string DetailedDescription { get; internal set; }
 
-		}
-
-		// Instance variables
-		private Dictionary<string, IObjectDescription> m_descriptions = new Dictionary<string, IObjectDescription>();
-		private Dictionary<string, ObjectConfiguration> m_configurations = new Dictionary<string, ObjectConfiguration>();
-
-		public MetadataManager()
-		{
+			public IDictionary<string, object> Pack()
+			{
+				Dictionary<string, object> result = new Dictionary<string, object>();
+				result["Name"] = Name;
+				result["DisplayName"] = DisplayName;
+				result["Description"] = Description;
+				result["DetailedDescription"] = DetailedDescription;
+				return result;
+			}
 
 		}
 
@@ -76,22 +77,22 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		/// <param name="baseName"></param>
 		/// <param name="input"></param>
-		public void LoadFromStream(string baseName, Stream input)
+		public static void LoadFromStream(string baseName, Stream input)
 		{
-			this.Log().Debug("Loading metadata for assembly '{0}'", baseName);
+			LogHost.Default.Debug("Loading metadata for assembly '{0}'", baseName);
 			XmlDocument document = new XmlDocument();
 			try
 			{
 				document.Load(input);
 				if (document.DocumentElement.Name != MetadataTag)
 				{
-					this.Log().Warn("Unexpected document tag in metadata file for {0} - expected <{1}>, got <{2}>.", baseName, MetadataTag, document.DocumentElement.Name);
+					LogHost.Default.Warn("Unexpected document tag in metadata file for {0} - expected <{1}>, got <{2}>.", baseName, MetadataTag, document.DocumentElement.Name);
 					return;
 				}
 			}
 			catch (Exception ex)
 			{
-				this.Log().Error("Unable to parse metadata file for {0} - {1}", baseName, ex.ToString());
+				LogHost.Default.Error("Unable to parse metadata file for {0} - {1}", baseName, ex.ToString());
 				return;
 			}
 			// Get the default language
@@ -105,109 +106,22 @@ namespace SensHub.Server.Managers
 				if (node.NodeType == XmlNodeType.Element)
 				{
 					if (node.Name != ClassTag)
-						this.Log().Warn("Unexpected tag found in metadata file for {0} - expected <{1}>, found <{2}>.", baseName, ClassTag, node.Name);
+						LogHost.Default.Warn("Unexpected tag found in metadata file for {0} - expected <{1}>, found <{2}>.", baseName, ClassTag, node.Name);
 					else
 					{
 						attr = node.Attributes.GetNamedItem(NameAttribute);
 						if (attr == null)
-							this.Log().Warn("Missing name attribute in class definition metadata for {0}.", baseName);
+							LogHost.Default.Warn("Missing name attribute in class definition metadata for {0}.", baseName);
 						else
 						{
 							string className = baseName + "." + attr.Value;
-							this.Log().Debug("Loading class definition for '{0}'", className);
+							LogHost.Default.Debug("Loading class definition for '{0}'", className);
 							ProcessClass(baseName + "." + attr.Value, defaultLanguage, (XmlElement)node);
 						}
 					}						
 				}
 			}
 
-		}
-
-		/// <summary>
-		/// Load metadata from an embedded resource in an assembly
-		/// </summary>
-		/// <param name="assembly"></param>
-		public void LoadFromAssembly(Assembly assembly)
-		{
-			Stream source = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Resources.metadata.xml");
-			if (source == null)
-			{
-				this.Log().Warn("Could not find metadata resource for assembly {0}.", assembly.GetName().Name);
-				return;
-			}
-			LoadFromStream(assembly.GetName().Name, source);
-		}
-
-		/// <summary>
-		/// Get a description by fully qualified class name
-		/// </summary>
-		/// <param name="classname"></param>
-		/// <returns></returns>
-		public IObjectDescription GetDescription(string className)
-		{
-			IObjectDescription description;
-			if (!m_descriptions.TryGetValue(className, out description))
-				return null;
-			return description;
-		}
-
-		/// <summary>
-		/// Get the description for objects of a particular type
-		/// </summary>
-		/// <param name="t"></param>
-		/// <returns></returns>
-		public IObjectDescription GetDescription(Type t)
-		{
-			string className = String.Format("{0}.{1}",
-				t.Namespace,
-				t.Name);
-			return GetDescription(className);
-		}
-
-		/// <summary>
-		/// Get the description for objects of a particular type.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public IObjectDescription GetDescription<T>()
-		{
-			return GetDescription(typeof(T));
-		}
-
-		/// <summary>
-		/// Get a named configuration
-		/// </summary>
-		/// <param name="className"></param>
-		/// <returns></returns>
-		public ObjectConfiguration GetConfiguration(string className)
-		{
-			ObjectConfiguration config;
-			if (!m_configurations.TryGetValue(className, out config))
-				return null;
-			return config;
-		}
-
-		/// <summary>
-		/// Get configuration description for a given type.
-		/// </summary>
-		/// <param name="t"></param>
-		/// <returns></returns>
-		public ObjectConfiguration GetConfiguration(Type t)
-		{
-			string className = String.Format("{0}.{1}",
-				t.Namespace,
-				t.Name);
-			return GetConfiguration(className);
-		}
-
-		/// <summary>
-		/// Get the configuration for a specific type.
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <returns></returns>
-		public ObjectConfiguration GetConfiguration<T>()
-		{
-			return GetConfiguration(typeof(T));
 		}
 
 		#region XML Parser Helpers
@@ -217,7 +131,7 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		private string GetLocalisedText(string defaultLang, XmlElement element, string textTag = TextTag)
+		private static string GetLocalisedText(string defaultLang, XmlElement element, string textTag = TextTag)
 		{
 			var items = from node in element.ChildNodes.Cast<XmlElement>()
 						where (node.Name == textTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == CultureInfo.CurrentCulture.Name)
@@ -234,7 +148,7 @@ namespace SensHub.Server.Managers
 			StringBuilder sb = new StringBuilder();
 			if (count == 0) 
 			{
-				this.Log().Warn("No text elements defined for this node.");
+				LogHost.Default.Warn("No text elements defined for this node.");
 				sb.Append("(unspecified)");
 			}
 			foreach (XmlElement text in items)
@@ -250,7 +164,7 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		private ObjectConfiguration ProcessConfiguration(string defaultLang, XmlElement parent)
+		private static ObjectConfiguration ProcessConfiguration(string defaultLang, XmlElement parent)
 		{
 			List<ConfigurationValue> values = new List<ConfigurationValue>();
 			var items = from node in parent.ChildNodes.Cast<XmlElement>()
@@ -265,7 +179,7 @@ namespace SensHub.Server.Managers
 				{
 					attr = element.Attributes.GetNamedItem(attrName) as XmlAttribute;
 					if (attr == null)
-						this.Log().Warn("Value definition is missing required attribute '{0}'", attrName);
+						LogHost.Default.Warn("Value definition is missing required attribute '{0}'", attrName);
 					else
 						attributes[attrName] = attr.Value;
 				}
@@ -275,7 +189,7 @@ namespace SensHub.Server.Managers
 				ConfigurationValue.ValueType valueType;
 				if (!Enum.TryParse<ConfigurationValue.ValueType>(attributes[TypeAttribute], out valueType))
 				{
-					this.Log().Warn("Unsupported value type '{0}' for configuration attribute {1}", attributes[TypeAttribute], attributes[NameAttribute]);
+					LogHost.Default.Warn("Unsupported value type '{0}' for configuration attribute {1}", attributes[TypeAttribute], attributes[NameAttribute]);
 					continue;
 				}
 				// We can build the configuration entry now
@@ -298,7 +212,7 @@ namespace SensHub.Server.Managers
 						attr = element.Attributes.GetNamedItem(NameAttribute) as XmlAttribute;
 						if (attr == null)
 						{
-							this.Log().Warn("Option element for value '{0}' does not specify a name.", attributes[NameAttribute]);
+							LogHost.Default.Warn("Option element for value '{0}' does not specify a name.", attributes[NameAttribute]);
 							continue;
 						}
 						ObjectDescription optionDescription = ProcessDescription(defaultLang, optionElement);
@@ -323,7 +237,7 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="parent"></param>
 		/// <returns></returns>
-		private ObjectDescription ProcessDescription(string defaultLang, XmlElement parent)
+		private static ObjectDescription ProcessDescription(string defaultLang, XmlElement parent)
 		{
 			ObjectDescription description = new ObjectDescription();
 			// Get the text first
@@ -334,19 +248,26 @@ namespace SensHub.Server.Managers
 			return description;
 		}
 
-		private void ProcessClass(string className, string defaultLang, XmlElement element)
+		/// <summary>
+		/// Extract information for a class.
+		/// </summary>
+		/// <param name="className"></param>
+		/// <param name="defaultLang"></param>
+		/// <param name="element"></param>
+		private static void ProcessClass(string className, string defaultLang, XmlElement element)
 		{
+			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
 			// Process configuration first
 			var items = from node in element.ChildNodes.Cast<XmlElement>()
 						where node.Name == ConfigurationTag
 						select node;
 			int count = items.Count();
 			if (count > 1)
-				this.Log().Warn("Multiple configuration entries for class '{0}'", className);
+				LogHost.Default.Warn("Multiple configuration entries for class '{0}'", className);
 			else if (count == 1)
 			{
-				this.Log().Debug("Loading configuration definition for class '{0}'", className);
-				m_configurations.Add(className, ProcessConfiguration(defaultLang, items.First()));
+				LogHost.Default.Debug("Loading configuration definition for class '{0}'", className);
+				mot.AddConfigurationDescription(className, ProcessConfiguration(defaultLang, items.First()));
 			}
 			// Process description
 			items = from node in element.ChildNodes.Cast<XmlElement>()
@@ -354,11 +275,11 @@ namespace SensHub.Server.Managers
 					select node;
 			count = items.Count();
 			if (count > 1)
-				this.Log().Warn("Multiple description entries for class '{0}'", className);
+				LogHost.Default.Warn("Multiple description entries for class '{0}'", className);
 			else if (count == 1)
 			{
-				this.Log().Debug("Loading description definition for class '{0}'", className);
-				m_descriptions.Add(className, ProcessDescription(defaultLang, items.First()));
+				LogHost.Default.Debug("Loading description definition for class '{0}'", className);
+				mot.AddDescription(className, ProcessDescription(defaultLang, items.First()));
 			}
 		}
 		#endregion

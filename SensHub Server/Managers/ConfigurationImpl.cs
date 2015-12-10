@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
 
-namespace SensHub.Server
+namespace SensHub.Server.Managers
 {
-    internal class ConfigurationImpl : Configuration
+    class ConfigurationImpl : Configuration
     {
         // Directory where configuration files are kept
         private const string ConfigurationDirectory = "config";
