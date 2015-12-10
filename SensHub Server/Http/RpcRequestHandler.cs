@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins;
+using SensHub.Server.Managers;
 using Splat;
 
 namespace SensHub.Server.Http
@@ -94,6 +95,8 @@ namespace SensHub.Server.Http
             m_methods = new Dictionary<string, RpcCallInfo>();
             // Add our own methods first
             RegisterMethods(this);
+			// Add methods from the MasterObjectTable
+			RegisterMethods(Locator.Current.GetService<MasterObjectTable>());
         }
 
         /// <summary>

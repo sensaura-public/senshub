@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Server;
+using SensHub.Server.Http;
 using Splat;
 
 namespace SensHub.Server.Managers
@@ -72,20 +73,34 @@ namespace SensHub.Server.Managers
 		/// Add an object instance to the master table
 		/// </summary>
 		/// <param name="instance"></param>
-		public void AddInstance(IUserObject instance)
+		public bool AddInstance(IUserObject instance)
 		{
 			lock (m_instances)
 			{
 				if (m_instances.ContainsKey(instance.UUID))
 				{
 					if (m_instances[instance.UUID] != instance)
+					{
 						this.Log().Warn("Object '{0}' is already registered with a different instance.", instance.UUID);
+						return false;
+					}
+					return true;
+				}
+				// Add and test for supporting metadata
+				m_instances[instance.UUID] = instance;
+				// TODO: Make sure we have a description and a configuration for the instance
+				if (GetDescription(instance.UUID) != null)
+				{
+					if (GetConfigurationDescription(instance.UUID) != null)
+						return true;
+					else
+						this.Log().Warn("Object '{0}' has no configuration information. Will not add.", instance.UUID);
 				}
 				else
-				{
-					m_instances[instance.UUID] = instance;
-					// TODO: Make sure we have a description and a configuration for the instance
-				}
+					this.Log().Warn("Object '{0}' has no description information. Will not add.", instance.UUID);
+				// Not enough data, remove it
+				m_instances.Remove(instance.UUID);
+				return false;
 			}
 		}
 
@@ -278,6 +293,62 @@ namespace SensHub.Server.Managers
 		#endregion
 
 		#region RPC Interface
+		/// <summary>
+		/// Get the current system state
+		/// </summary>
+		/// <returns></returns>
+		[RpcCall("GetState", AuthenticationRequired = true)]
+		public IDictionary<string, object> RpcGetState()
+		{
+			return Pack();
+		}
+
+		/// <summary>
+		/// Get the configuration description and current configuration for an object
+		/// </summary>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		[RpcCall("GetConfiguration", AuthenticationRequired = true)]
+		public IDictionary<string, object> RpcGetConfiguration(string id)
+		{
+			IUserObject instance = GetInstance(Guid.Parse(id));
+			if (instance == null)
+				throw new ArgumentException("No such object.");
+			Configuration config = GetConfiguration(instance.UUID);
+			if (config == null)
+				throw new ArgumentException("Object does not have a configuration.");
+			// Set up the result
+			Dictionary<string, object> result = new Dictionary<string, object>();
+			result["active"] = config.Pack();
+			result["details"] = GetConfigurationDescription(instance.UUID);
+			return result;
+		}
+
+		/// <summary>
+		/// Apply configuration changes to an object.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="config"></param>
+		/// <returns></returns>
+		[RpcCall("SetConfiguration", AuthenticationRequired = true)]
+		public bool RpcSetConfiguration(string id, IDictionary<string, object> config)
+		{
+			// TODO: Implement this
+			throw new NotImplementedException("This method is not yet implemented.");
+		}
+
+		/// <summary>
+		/// Create a new object with the given configuration
+		/// </summary>
+		/// <param name="parentID"></param>
+		/// <param name="config"></param>
+		/// <returns></returns>
+		[RpcCall("CreateInstance", AuthenticationRequired = true)]
+		public bool RpcCreateInstance(string parentID, IDictionary<string, object> config)
+		{
+			// TODO: Implement this
+			throw new NotImplementedException("This method is not yet implemented.");
+		}
 		#endregion
 
 	}

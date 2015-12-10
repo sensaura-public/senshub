@@ -64,7 +64,7 @@ namespace SensHub.Server.Managers
 				}
 				catch (Exception ex)
 				{
-					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.ToString());
+					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.Message);
 					continue;
 				}
 				// Get the plugins defined in the file (it can have more than one)
@@ -77,7 +77,7 @@ namespace SensHub.Server.Managers
 				{
 					// TODO: an exception here indicates a plugin built against a different version
 					//       of the API. Should report it as such.
-					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.ToString());
+					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.Message);
 					continue;
 				}
 				// Load metadata from the assembly

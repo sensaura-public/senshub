@@ -80,6 +80,9 @@ namespace SensHub.Server
 			// Make it globally available.
 			FileSystem fs = new FileSystem(options.StorageDirectory);
 			Locator.CurrentMutable.RegisterConstant(fs, typeof(FileSystem));
+			// Set up the MessageBus
+			MessageBus messageBus = new MessageBus();
+			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
 			// Set up the Master Object Table
 			MasterObjectTable mot = new MasterObjectTable();
 			Locator.CurrentMutable.RegisterConstant(mot, typeof(MasterObjectTable));
@@ -93,9 +96,6 @@ namespace SensHub.Server
                 mot.GetConfigurationDescription(server.UUID)
                 );
             Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
-			// Set up the MessageBus
-			MessageBus messageBus = new MessageBus();
-			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
             // Initialise logging now we have a server configuration
 			logger.Enable();
             // Set up the  HttpServer

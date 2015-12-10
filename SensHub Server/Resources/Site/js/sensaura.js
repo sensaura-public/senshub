@@ -103,7 +103,7 @@ function rpcResponse(data) {
   if (data.hasOwnProperty("response"))
     recv(data["response"]);
   // Process any messages
-  for (msg in response["messages"])
+  for (msg in data["messages"])
     recv(msg);
   }
 
@@ -337,7 +337,7 @@ function pageSetup() {
         }
       else {
         // Get the server state
-        rpcCall("GetServerState", { },
+        rpcCall("GetState", { },
           function(status, result) {
             onComplete(status, result);
             if(status)

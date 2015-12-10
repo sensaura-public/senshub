@@ -2,6 +2,13 @@
 <metadata defaultLang="en">
   <!-- Configuration description for the server (main class) -->
   <class name="Program">
+    <description>
+      <icon image="senshub.png"/>
+      <displayname lang="en">SensHub Server</displayname>
+      <shortdescription lang="en">
+        The SensHub server provides a single management point for all of your sensor data.
+      </shortdescription>
+    </description>
     <configuration>
       <value name="password" type="StringValue" default="">
         <text lang="en">Set the system password.</text>
