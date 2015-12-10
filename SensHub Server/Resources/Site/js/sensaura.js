@@ -250,10 +250,10 @@ function addPlugin(id, info) {
   // Rebuild the info object into something more suitable for the template
   plugin = clone(info);
   // Convert text fields to HTML with markdown
-  for (var key in [ "shortdescription", "longdescription" ]) {
-    if (plugin[key])
-      plugin[key] = markdown.toHTML(plugin[key]);
-    }
+  if (plugin["Description"])
+    plugin["Description"] = markdown.toHTML(plugin["Description"]);
+  if (plugin["DetailedDescription"])
+    plugin["DetailedDescription"] = markdown.toHTML(plugin["DetailedDescription"]);
   // TODO: Turn enabled from boolean to a checkbox style
   // Now add the plugin
   $widget = copyTemplate("template-plugin", id, plugin);

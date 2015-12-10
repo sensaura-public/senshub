@@ -140,8 +140,8 @@
       <displayname lang="en">Scripted Actions</displayname>
       <shortdescription lang="en">Allows custom actions to be written as Lua scripts.</shortdescription>
       <longdescription lang="en">
-        This plugin provides an Action type that allows you to use custom scripts written in Lua to
-        process messages.
+        This plugin provides an Action type that allows you to use custom scripts written in
+        the [Lua language](http://www.lua.org) to process messages.
       </longdescription>
     </description>
   </class>
