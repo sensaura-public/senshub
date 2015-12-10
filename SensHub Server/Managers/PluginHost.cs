@@ -85,6 +85,18 @@ namespace SensHub.Server.Managers
 		{
 			m_messageBus.Publish(topic, message, source);
 		}
+
+		public bool RegisterActionFactory(AbstractActionFactory factory)
+		{
+			// TODO: Implement this
+			return false;
+		}
+
+		public bool RegisterSourceFactory(AbstractSourceFactory factory)
+		{
+			// TODO: Implement this
+			return false;
+		}
 		#endregion
 
 		#region Custom Operations

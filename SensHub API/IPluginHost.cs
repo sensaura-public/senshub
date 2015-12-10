@@ -44,5 +44,9 @@ namespace SensHub.Plugins
 		/// instance that enforces that.
 		/// </summary>
 		IFolder FileSystem { get; }
+
+		bool RegisterActionFactory(AbstractActionFactory factory);
+
+		bool RegisterSourceFactory(AbstractSourceFactory factory);
     }
 }

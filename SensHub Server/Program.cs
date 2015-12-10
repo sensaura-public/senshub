@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using SensHub.Plugins;
 using SensHub.Server.Http;
 using SensHub.Server.Mqtt;
+using SensHub.Server.Scripting;
 using SensHub.Server.Managers;
 using CommandLine;
 using Splat;
@@ -110,6 +111,8 @@ namespace SensHub.Server
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
 			plugins.AddPlugin(new MqttPlugin());
+			plugins.AddPlugin(new WebHookPlugin());
+			plugins.AddPlugin(new ScriptPlugin());
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
 			plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();

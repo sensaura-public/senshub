@@ -141,7 +141,7 @@ namespace SensHub.Server.Managers
 		{
 			lock (m_pluginsEnabled)
 			{
-				foreach (Guid uuid in m_pluginsAvailable.Keys)
+				foreach (Guid uuid in m_pluginsEnabled.Keys)
 				{
 					m_pluginsEnabled[uuid].ShutdownPlugin();
 				}

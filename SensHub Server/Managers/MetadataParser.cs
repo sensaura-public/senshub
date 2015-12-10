@@ -258,8 +258,8 @@ namespace SensHub.Server.Managers
 		{
 			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
 			// Process configuration first
-			var items = from node in element.ChildNodes.Cast<XmlElement>()
-						where node.Name == ConfigurationTag
+			var items = from node in element.ChildNodes.Cast<XmlNode>()
+						where (node.Name == ConfigurationTag) && (node.NodeType == XmlNodeType.Element)
 						select node;
 			int count = items.Count();
 			if (count > 1)
@@ -267,11 +267,11 @@ namespace SensHub.Server.Managers
 			else if (count == 1)
 			{
 				LogHost.Default.Debug("Loading configuration definition for class '{0}'", className);
-				mot.AddConfigurationDescription(className, ProcessConfiguration(defaultLang, items.First()));
+				mot.AddConfigurationDescription(className, ProcessConfiguration(defaultLang, (XmlElement)items.First()));
 			}
 			// Process description
-			items = from node in element.ChildNodes.Cast<XmlElement>()
-					where node.Name == DescriptionTag
+			items = from node in element.ChildNodes.Cast<XmlNode>()
+					where (node.Name == DescriptionTag) && (node.NodeType == XmlNodeType.Element)
 					select node;
 			count = items.Count();
 			if (count > 1)
@@ -279,7 +279,7 @@ namespace SensHub.Server.Managers
 			else if (count == 1)
 			{
 				LogHost.Default.Debug("Loading description definition for class '{0}'", className);
-				mot.AddDescription(className, ProcessDescription(defaultLang, items.First()));
+				mot.AddDescription(className, ProcessDescription(defaultLang, (XmlElement)items.First()));
 			}
 		}
 		#endregion

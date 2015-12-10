@@ -37,29 +37,6 @@
       </value>
     </configuration>
   </class>
-  <!-- Configuration description for the MQTT plugin -->
-  <class name="Mqtt.MqttPlugin">
-    <description>
-      <icon image="mqtt.png"/>
-      <displayname lang="en">Mqtt Integration</displayname>
-      <shortdescription lang="en">Duplicate SensHub messages on a MQTT server.</shortdescription>
-      <longdescription lang="en">
-        This plugin allows messages on the SensHub message bus to be replicated on a MQTT server
-        and vice-versa. Use of MQTT provides maximum flexibility.
-      </longdescription>
-    </description>
-    <configuration>
-      <value name="server" type="StringValue" default="localhost">
-        <text lang="en">The IP address or host name of the MQTT server to bind to.</text>
-      </value>
-      <value name="topic" type="StringValue" default="senshub">
-        <text lang="en">The MQTT topic tree to use for messages.</text>
-      </value>
-      <value name="identity" type="StringValue" default="">
-        <text lang="en">The SensHub server identity string.</text>
-      </value>
-    </configuration>
-  </class>
   <!-- Configuration description for a single match -->
   <class name="Rules.Match">
     <configuration>
@@ -110,11 +87,63 @@
     </configuration>
   </class>
   <!-- Configuration description for a script based action -->
-  <class name="Rules.ScriptAction">
+  <class name="Scripting.ScriptActionFactory">
     <configuration>
       <value name="source" type="ScriptValue" default="">
         <text lang="en">The source for the script to run.</text>
       </value>
     </configuration>
   </class>
+  <!-- Plugins
+  
+    These plugin classes are built into the main server executable.
+  -->
+  <class name="Mqtt.MqttPlugin">
+    <!-- MQTT integration support -->
+    <description>
+      <icon image="mqtt.png"/>
+      <displayname lang="en">Mqtt Integration</displayname>
+      <shortdescription lang="en">Duplicate SensHub messages on a MQTT server.</shortdescription>
+      <longdescription lang="en">
+        This plugin allows messages on the SensHub message bus to be replicated on a MQTT server
+        and vice-versa. Use of MQTT provides maximum flexibility.
+      </longdescription>
+    </description>
+    <configuration>
+      <value name="server" type="StringValue" default="localhost">
+        <text lang="en">The IP address or host name of the MQTT server to bind to.</text>
+      </value>
+      <value name="topic" type="StringValue" default="senshub">
+        <text lang="en">The MQTT topic tree to use for messages.</text>
+      </value>
+      <value name="identity" type="StringValue" default="">
+        <text lang="en">The SensHub server identity string.</text>
+      </value>
+    </configuration>
+  </class>
+  <class name="Http.WebHookPlugin">
+    <!-- WebHooks integration support -->
+    <description>
+      <icon image="webhooks.png"/>
+      <displayname lang="en">WebHooks Integration</displayname>
+      <shortdescription lang="en">Allows incoming WebHooks to generate messages.</shortdescription>
+      <longdescription lang="en">
+        This plugin provides a message source that allows data from external services to be
+        sent as messages via incoming webhooks.
+      </longdescription>
+    </description>
+  </class>
+  <class name="Scripting.ScriptPlugin">
+    <!-- WebHooks integration support -->
+    <description>
+      <icon image="lua.png"/>
+      <displayname lang="en">Scripted Actions</displayname>
+      <shortdescription lang="en">Allows custom actions to be written as Lua scripts.</shortdescription>
+      <longdescription lang="en">
+        This plugin provides an Action type that allows you to use custom scripts written in Lua to
+        process messages.
+      </longdescription>
+    </description>
+  </class>
+
 </metadata>

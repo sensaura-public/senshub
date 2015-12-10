@@ -57,6 +57,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Http\WebHookPlugin.cs" />
     <Compile Include="Managers\ConfigurationImpl.cs" />
     <Compile Include="FileSystem.cs" />
     <Compile Include="Http\HttpRequestHandler.cs" />
@@ -80,6 +81,9 @@
     <Compile Include="Managers\PluginManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scripting\ScriptAction.cs" />
+    <Compile Include="Scripting\ScriptActionFactory.cs" />
+    <Compile Include="Scripting\ScriptPlugin.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
