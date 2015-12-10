@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins;
+using SensHub.Server.Mqtt;
 using Splat;
 
 namespace SensHub.Server.Http
@@ -183,10 +184,17 @@ namespace SensHub.Server.Http
 						expired.Add(id);
 					}
 				}
-				// Get rid of any that are no longer active
+                // Did we find any?
+                if (expired == null)
+                    return;
+                // Get rid of any that are no longer active
+                MessageBus mb = Locator.Current.GetService<MessageBus>();
 				foreach (string id in expired)
-					m_sessions.Remove(id);
-			}
+                {
+                    mb.Unsubscribe(m_sessions[id]);
+                    m_sessions.Remove(id);
+                }
+            }
 		}
 
 		/// <summary>
