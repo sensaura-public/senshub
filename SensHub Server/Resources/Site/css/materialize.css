@@ -6625,7 +6625,8 @@ textarea.materialize-textarea {
     .input-field .prefix.active {
       color: #EF5350; }
   .input-field .prefix ~ input,
-  .input-field .prefix ~ textarea {
+  .input-field .prefix ~ textarea,
+  .input-field .prefix ~ div.select-wrapper {
     margin-left: 3rem;
     width: 92%;
     width: calc(100% - 3rem); }
