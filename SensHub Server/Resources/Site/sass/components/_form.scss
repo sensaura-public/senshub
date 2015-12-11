@@ -149,7 +149,8 @@ textarea.materialize-textarea {
   }
   .prefix ~ input,
   .prefix ~ textarea,
-  .prefix ~ div.select-wrapper {
+  .prefix ~ div.select-wrapper,
+  .prefix ~ div.tag-list {
     margin-left: 3rem;
     width: 92%;
     width: calc(100% - 3rem);
