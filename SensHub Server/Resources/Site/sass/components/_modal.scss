@@ -30,6 +30,16 @@
     cursor: pointer;
   }
 
+  .modal-header {
+    border-radius: 0 0 2px 2px;
+    background-color: $primary-color;
+    padding: 4px 6px;
+    height: 56px;
+    width: 100%;
+    font-size: 32px;
+    font-weight: bold;
+    }
+
   .modal-footer {
     border-radius: 0 0 2px 2px;
     background-color: #fafafa;
@@ -75,6 +85,32 @@
     border-top: 1px solid rgba(0,0,0,.1);
     position: absolute;
     bottom: 0;
+  }
+}
+
+// Modal with fixed header and action footer
+.modal.modal-fixed-header-footer {
+  padding: 0;
+  height: 70%;
+
+  .modal-content {
+    position: absolute;
+    height: calc(100% - 112px);
+    max-height: 100%;
+    width: 100%;
+    overflow-y: auto;
+  }
+
+  .modal-footer {
+    border-top: 1px solid rgba(0,0,0,.1);
+    position: absolute;
+    bottom: 0;
+  }
+
+  .modal-header {
+    border-bottom: 1px solid rgba(0,0,0,.1);
+    position: absolute;
+    top: 0;
   }
 }
 

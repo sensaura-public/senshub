@@ -6182,6 +6182,14 @@ a.waves-effect .waves-ripple {
     padding: 24px; }
   .modal .modal-close {
     cursor: pointer; }
+  .modal .modal-header {
+    border-radius: 0 0 2px 2px;
+    background-color: #3f51b5;
+    padding: 4px 6px;
+    height: 56px;
+    width: 100%;
+    font-size: 32px;
+    font-weight: bold; }
   .modal .modal-footer {
     border-radius: 0 0 2px 2px;
     background-color: #fafafa;
@@ -6218,6 +6226,24 @@ a.waves-effect .waves-ripple {
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     position: absolute;
     bottom: 0; }
+
+.modal.modal-fixed-footer {
+  padding: 0;
+  height: 70%; }
+  .modal.modal-fixed-footer .modal-content {
+    position: absolute;
+    height: calc(100% - 112px);
+    max-height: 100%;
+    width: 100%;
+    overflow-y: auto; }
+  .modal.modal-fixed-footer .modal-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    position: absolute;
+    bottom: 0; }
+  .modal.modal-fixed-footer .modal-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 0; }
 
 .modal.bottom-sheet {
   top: auto;
