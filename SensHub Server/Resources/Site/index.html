@@ -5,6 +5,8 @@
       <link href="http://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
       <!--Import materialize.css-->
       <link type="text/css" rel="stylesheet" href="css/materialize.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="css/clockpicker.css"  media="screen,projection"/>
+    <link type="text/css" rel="stylesheet" href="css/codemirror.css"  media="screen,projection"/>
       <link type="text/css" rel="stylesheet" href="css/sensaura.css"  media="screen,projection"/>
       <!--Let browser know website is optimized for mobile-->
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -15,6 +17,9 @@
       <script type="text/javascript" src="js/jqueryjson.js"></script>
       <script type="text/javascript" src="js/materialize.js"></script>
       <script type="text/javascript" src="js/markdown.js"></script>
+      <script type="text/javascript" src="js/clockpicker.js"></script>
+      <script type="text/javascript" src="js/codemirror.js"></script>
+      <script type="text/javascript" src="js/lua.js"></script>
       <script type="text/javascript" src="js/sensaura.js"></script>
       <!-- Navigation -->
       <header class="navbar-fixed">
@@ -162,6 +167,140 @@
                 </div>
               </div>
             </div>
+          </div>
+          <!--
+               Configruation editing field templates
+          -->
+          <!-- BooleanValue input -->
+          <div id="input-boolean" class="col s12 input-field">
+            <input type="checkbox" id="input-boolean-field" />
+            <label for="input-boolean-field">Enable external access.</label>
+          </div>
+          <div id="input-boolean-description" class="col s12 italic padding-top-large padding-left-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- NumericValue input -->
+          <div id="input-numeric" class="col s12 input-field">
+            <i class="material-icons prefix">looks_one</i>
+            <input id="input-numeric-field" type="text" class="validate">
+            <label for="input-numeric-field">Numeric value.</label>
+          </div>
+          <div id="input-numeric-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- DateValue input -->
+          <div id="input-date" class="col s12 input-field">
+            <i class="material-icons prefix">date_range</i>
+            <input id="input-date-field" type="date" class="datepicker">
+          </div>
+          <div id="input-date-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- TimeValue input -->
+          <div id="input-time" class="col s12 input-field">
+            <i class="material-icons prefix">schedule</i>
+            <input id="input-time-field" type="text" class="timepicker">
+          </div>
+          <div id="input-time-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- StringValue input -->
+          <div id="input-string" class="col s12 input-field">
+            <i class="material-icons prefix">mode_edit</i>
+            <input id="input-string-field" type="text" class="validate">
+            <label for="input-string-field">String value.</label>
+          </div>
+          <div id="input-string-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- TopicValue input -->
+          <div id="input-topic" class="col s12 input-field">
+            <i class="material-icons prefix">turned_in</i>
+            <input id="input-topic-field" type="text" class="validate">
+            <label for="input-topic-field">Topic value.</label>
+          </div>
+          <div id="input-topic-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- TextValue input -->
+          <div id="input-text" class="col s12 input-field">
+            <i class="material-icons prefix">subject</i>
+            <textarea id="input-text-field" class="materialize-textarea"></textarea>
+            <label for="input-text-field">Text area.</label>
+          </div>
+          <div id="input-text-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- PaswordValue input -->
+          <div class="col s12 row padding-horizontal-none margin-none">
+            <div id="input-password-current" class="col s12 input-field">
+              <i class="material-icons prefix">lock_outline</i>
+              <input id="input-password-current-field" type="password" class="validate">
+              <label for="input-password-current-field">Current password</label>
+            </div>
+            <div id="input-password-new" class="col s12 input-field">
+              <i class="material-icons prefix">blank</i>
+              <input id="input-password-new-field" type="password" class="validate">
+              <label for="input-password-new-field">New password</label>
+            </div>
+            <div id="input-password-verify" class="col s12 input-field">
+              <i class="material-icons prefix">blank</i>
+              <input id="input-password-verify-field" type="password" class="validate">
+              <label for="input-password-verify-field">New password (again)</label>
+            </div>
+          </div>
+          <div id="input-password-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- TODO: ScriptValue input -->
+          <!-- ObjectValue input -->
+          <div id="input-object" class="col s12 input-field">
+            <i class="material-icons prefix">widgets</i>
+            <select id="input-object-field">
+              <option value="" disabled selected>Select Object</option>
+              <option value="1">Option 1</option>
+              <option value="2">Option 2</option>
+              <option value="3">Option 3</option>
+            </select>
+          </div>
+          <div id="input-object-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- TODO: ObjectList input -->
+          <div id="input-objectlist" class="col s12 row padding-horizontal-none margin-none">
+            <div id="input-objectlist-values" class="col s12 input-field">
+              <i class="material-icons prefix">playlist_add</i>
+              <div class="tag-list">
+                <div class="chip">Tag<i class="material-icons">close</i></div>
+                <div class="chip">Tag<i class="material-icons">close</i></div>
+                <div class="chip">Tag<i class="material-icons">close</i></div>
+              </div>
+            </div>
+            <div id="input-objectlist-select" class="col s12 input-field">
+              <i class="material-icons prefix">blank</i>
+              <select id="input-objectlist-field">
+                <option value="" disabled selected>Select Option</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option>
+              </select>
+            </div>
+          </div>
+          <div id="input-objectlist-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
+          </div>
+          <!-- OptionList input -->
+          <div id="input-optionlist" class="col s12 input-field">
+            <i class="material-icons prefix">list</i>
+            <select id="input-optionlist-field">
+              <option value="" disabled selected>Select Option</option>
+              <option value="1">Option 1</option>
+              <option value="2">Option 2</option>
+              <option value="3">Option 3</option>
+            </select>
+          </div>
+          <div id="input-object-description" class="col s12 italic padding-large">
+              Detailed description of what this field means.
           </div>
         </div>
       </main>

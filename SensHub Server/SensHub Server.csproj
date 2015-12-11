@@ -150,6 +150,15 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\Site\js\markdown.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\css\clockpicker.css" />
+    <EmbeddedResource Include="Resources\Site\css\codemirror.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\clockpicker.js" />
+    <EmbeddedResource Include="Resources\Site\js\codemirror.js" />
+    <EmbeddedResource Include="Resources\Site\js\lua.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -228,6 +228,20 @@ function unsubscribe(ref) {
 // Utilities
 //---------------------------------------------------------------------------
 
+// jQuery extension for codemirror
+(function($){$.fn.codemirror = function(options) {
+  var result = this;
+  var settings = $.extend( {
+    'mode' : 'lua',
+    'lineNumbers' : false,
+    'runmode' : false
+  }, options);
+  this.each(function() {
+    result = CodeMirror.fromTextArea(this, settings);
+  });
+  return result;
+};})( jQuery );
+
 // Perfom 'action' on every entry in obj
 function foreach(obj, action) {
   for (var key in obj) {
