@@ -38,6 +38,7 @@
     width: 100%;
     font-size: 32px;
     font-weight: bold;
+    color: $navbar-font-color;
     }
 
   .modal-footer {
@@ -99,6 +100,7 @@
     max-height: 100%;
     width: 100%;
     overflow-y: auto;
+    top: 56px;
   }
 
   .modal-footer {
