@@ -13,14 +13,18 @@ namespace SensHub.Plugins
 	{
 		public enum ValueType
 		{
+			BooleanValue,
+			NumericValue,
+			DateValue,
+			TimeValue,
 			StringValue,
 			TopicValue,
 			TextValue,
+			PasswordValue,
 			ScriptValue,
-			NumericValue,
+			ObjectValue,
+			ObjectList,
 			OptionList,
-			StringList,
-			ConfigList,
 		}
 
 		public string DisplayName { get; private set; }
