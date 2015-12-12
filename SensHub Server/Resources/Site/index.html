@@ -31,7 +31,12 @@
               <li id="actions_button"><a href="#" onClick='setActivePage("actions")'>Actions</a></li>
               <li id="sources_button"><a href="#" onClick='setActivePage("sources")'>Sources</a></li>
               <li id="plugins_button"><a href="#" onClick='setActivePage("plugins")'>Plugins</a></li>
-              <li><a class="modal-trigger" href="#" onclick="$('#server-settings').openModal();"><i class="material-icons">settings</i></a></li>
+              <li><a href="#!" data-activates="server-menu" class="dropdown-button"><i class="material-icons">menu</i></a></li>
+            </ul>
+            <ul class="dropdown-content" id="server-menu">
+              <li><a href="#!">Settings</a></li>
+              <li><a href="#!">Control</a></li>
+              <li><a href="#!">About</a></li>
             </ul>
           </div>
         </nav>

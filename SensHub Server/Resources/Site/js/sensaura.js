@@ -160,6 +160,9 @@ function serverConnected(status, data) {
 // Server initialisation
 $(document).ready(
   function() {
+    // Set up UI elements
+    $(".dropdown-button").dropdown();
+    // Check for debug mode
     if (debugMode) {
       console.log("!! Debug mode is enabled, network setup will not occur.");
       return;
