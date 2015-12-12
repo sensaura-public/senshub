@@ -76,7 +76,7 @@ function recv(data) {
       return;
       }
     topic = data["topic"];
-    message = data["message"];
+    payload = data["message"];
     // Figure out who wants it
     subs = [ ];
     len = topic.length
@@ -89,7 +89,7 @@ function recv(data) {
     // Now dispatch the message
     for (var i=0; i<subs.length; i++) {
       if (subs[i] in subscribers)
-        subscribers[subs[i]][1](topic, message);
+        subscribers[subs[i]][1](topic, payload);
       }
     }
   else
@@ -263,6 +263,13 @@ function clone(obj) {
 // Object updates
 //---------------------------------------------------------------------------
 
+// Show an RPC error
+function showError(msg) {
+  // TODO: Should display this to the user somehow
+  console.log("RPC Error: " + msg);
+  }
+  
+// Add a plugin to the page
 function addPlugin(id, info) {
   // Rebuild the info object into something more suitable for the template
   plugin = clone(info);
@@ -280,15 +287,67 @@ function addPlugin(id, info) {
 function updatePlugin(id, info) {
   }
 
+var inConfig = false;
+
+// Build and display the configuration dialog for the given object ID
+function showConfiguration(id) {
+  if (inConfig)
+    return;
+  inConfig = true;
+  // Get the configuratin from the server
+  rpcCall("GetConfiguration", { id: id }, function(status, data) {
+    if (!status) {
+      showError(data);
+      inConfig = false;
+      return;
+      }
+    // Copy the template for the dialog
+    $config = copyTemplate("template-config", id, objectList[id]);
+    $("#modals").prepend($config);
+    // Create the fields
+    container = $("#" + id + "-fields");
+    for (var i = 0; i<data.details.length; i++) {
+      field = data.details[i];
+      $widget = copyTemplate("template-" + field["ValueType"], field["DisplayName"], field);
+      container.append($widget);
+      // TODO: Customise for type
+      if (field["ValueType"]=="OptionList") {
+        // Add the options
+        // Set up the selection widget
+        $("#" + field["DisplayName"] + "-field").material_select();
+        }
+      else if (field["ValueType"]=="ObjectList") {
+        // Add the options
+        // Set up the selection widget
+        $("#" + field["DisplayName"] + "-field").material_select();
+        }
+      }
+    container = $("#" + id + "-fields");
+    // And show the dialog
+    inConfig = false;
+    $("#" + id).openModal();
+    });
+  }
+
 //---------------------------------------------------------------------------
 // Initial page setup
 //---------------------------------------------------------------------------
 
 var serverState = null;
+var objectList = null;
+var serverID = null;
 
 function updateState(state) {
   // Update the UI with the state information
   serverState = state;
+  objectList = { };
+  foreach (serverState, function(type, instances) {
+    foreach (instances, function(id, description) {
+      if (type == "Server")
+        serverID = id;
+      objectList[id] = description;
+      })
+    });
   // Build the plugins page
   foreach(serverState["Plugin"], function(id, description) {
     console.log("Setting up plugin " + id);

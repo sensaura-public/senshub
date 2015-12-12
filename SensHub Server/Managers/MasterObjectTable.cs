@@ -330,7 +330,11 @@ namespace SensHub.Server.Managers
 			// Set up the result
 			Dictionary<string, object> result = new Dictionary<string, object>();
 			result["active"] = config.Pack();
-			result["details"] = GetConfigurationDescription(instance.UUID);
+            ObjectConfiguration configDescription = GetConfigurationDescription(instance.UUID);
+            List<IDictionary<string, object>> details = new List<IDictionary<string, object>>();
+            foreach (ConfigurationValue value in configDescription)
+                details.Add(value.Pack());
+			result["details"] = details;
 			return result;
 		}
 

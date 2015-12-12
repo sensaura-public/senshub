@@ -9,7 +9,7 @@ namespace SensHub.Plugins
 	/// <summary>
 	/// Describes a single configuration entry.
 	/// </summary>
-	public class ConfigurationValue : IDescribed
+	public class ConfigurationValue : IDescribed, IObjectDescription
 	{
 		public enum ValueType
 		{
@@ -27,19 +27,23 @@ namespace SensHub.Plugins
 			OptionList,
 		}
 
-		public string DisplayName { get; private set; }
+        public string Icon { get; set; }
+
+        public string DisplayName { get; private set; }
 
 		public string Description { get; private set; }
 
-		public ValueType Type { get; private set; }
+        public string DetailedDescription { get; set; }
+
+        public ValueType Type { get; private set; }
 
 		public object DefaultValue { get; private set; }
 
 		public List<IObjectDescription> Options { get; set; }
 
-		public Configuration Subtype { get; set; }
+		public UserObjectType Subtype { get; set; }
 
-		public ConfigurationValue(string name, ValueType type, object defaultValue, string description)
+        public ConfigurationValue(string name, ValueType type, object defaultValue, string description)
 		{
 			DisplayName = name;
 			Type = type;
@@ -57,5 +61,25 @@ namespace SensHub.Plugins
 			// TODO: Implement this
 			return value;
 		}
-	}
+
+        public IDictionary<string, object> Pack()
+        {
+            Dictionary<string, object> results = new Dictionary<string, object>();
+            results["DisplayName"] = DisplayName;
+            results["Icon"] = Icon;
+            results["Description"] = Description;
+            results["DetailedDescription"] = DetailedDescription;
+            results["ValueType"] = Type.ToString();
+            results["SubType"] = Subtype.ToString();
+            if (Options != null)
+            {
+                List<IDictionary<string, object>> options = new List<IDictionary<string, object>>();
+                foreach (IObjectDescription description in Options)
+                    options.Add(description.Pack());
+                results["Options"] = options;
+            }
+            results["DefaultValue"] = DefaultValue;
+            return results;
+        }
+    }
 }

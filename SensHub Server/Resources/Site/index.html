@@ -34,7 +34,7 @@
               <li><a href="#!" data-activates="server-menu" class="dropdown-button"><i class="material-icons">menu</i></a></li>
             </ul>
             <ul class="dropdown-content" id="server-menu">
-              <li><a href="#!">Settings</a></li>
+              <li><a href="#!" onclick="showConfiguration(serverID)">Settings</a></li>
               <li><a href="#!">Control</a></li>
               <li><a href="#!">About</a></li>
             </ul>
@@ -132,17 +132,23 @@
         <div id="plugins" class="row hidden padding-small">
         </div>
         <!-- Modals -->
-        <div id="server-settings" class="modal modal-fixed-footer">
-          <div class="modal-content">
-            <h4>Server Settings</h4>
-          </div>
-          <div class="modal-footer">
-            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Apply</a>
-            <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Cancel</a>
-          </div>
+        <div id="modals">
         </div>
         <!-- Templates -->
         <div id="templates" class="hidden">
+          <!-- Template for configuration menu -->
+          <div id="template-config" class="modal modal-fixed-header-footer">
+            <div class="modal-header">
+              ${DisplayName} Configuration
+            </div>
+            <div id="${template-config}-fields" class="modal-content">
+              <!-- Editor fields go here -->
+            </div>
+            <div class="modal-footer">
+              <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Apply</a>
+              <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Cancel</a>
+            </div>
+          </div>
           <!-- Template for displaying plugin information -->
           <div id="template-plugin" class="col s12 m6 l4 plugin">
             <div class="z-depth-2 padding-small margin-small">
@@ -177,103 +183,119 @@
                Configruation editing field templates
           -->
           <!-- BooleanValue input -->
-          <div id="input-boolean" class="col s12 input-field">
-            <input type="checkbox" id="input-boolean-field" />
-            <label for="input-boolean-field">Enable external access.</label>
-          </div>
-          <div id="input-boolean-description" class="col s12 italic padding-top-large padding-left-large">
-              Detailed description of what this field means.
-          </div>
+          <div id="template-BooleanValue" class="col s12">
+            <div class="input-field">
+              <input type="checkbox" id="${template-BooleanValue}-field" />
+              <label for="${template-BooleanValue}-field">${Description}</label>
+            </div>
+            <div id="${template-BooleanValue}-description" class="col s12 italic padding-top-large padding-left-large">
+              ${DetailedDescription}
+            </div>
+          </div>            
           <!-- NumericValue input -->
-          <div id="input-numeric" class="col s12 input-field">
-            <i class="material-icons prefix">looks_one</i>
-            <input id="input-numeric-field" type="text" class="validate">
-            <label for="input-numeric-field">Numeric value.</label>
-          </div>
-          <div id="input-numeric-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="template-NumericValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">looks_one</i>
+              <input id="${template-NumericValue}-field" type="text" class="validate">
+              <label for="${template-NumericValue}-field">${Description}</label>
+            </div>
+            <div id="${template-NumericValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
           </div>
           <!-- DateValue input -->
-          <div id="input-date" class="col s12 input-field">
-            <i class="material-icons prefix">date_range</i>
-            <input id="input-date-field" type="date" class="datepicker">
-          </div>
-          <div id="input-date-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="template-DateValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">date_range</i>
+              <input id="${template-DateValue}-field" type="date" class="datepicker">
+            </div>
+            <div id="${template-DateValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
           </div>
           <!-- TimeValue input -->
-          <div id="input-time" class="col s12 input-field">
-            <i class="material-icons prefix">schedule</i>
-            <input id="input-time-field" type="text" class="timepicker">
-          </div>
-          <div id="input-time-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="template-TimeValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">schedule</i>
+              <input id="${template-TimeValue}-field" type="text" class="timepicker">
+            </div>
+            <div id="${template-TimeValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
           </div>
           <!-- StringValue input -->
-          <div id="input-string" class="col s12 input-field">
-            <i class="material-icons prefix">mode_edit</i>
-            <input id="input-string-field" type="text" class="validate">
-            <label for="input-string-field">String value.</label>
-          </div>
-          <div id="input-string-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="template-StringValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">mode_edit</i>
+              <input id="${template-StringValue}-field" type="text" class="validate">
+              <label for="${template-StringValue}-field">${Description}</label>
+            </div>
+            <div id="${template-StringValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
           </div>
           <!-- TopicValue input -->
-          <div id="input-topic" class="col s12 input-field">
-            <i class="material-icons prefix">turned_in</i>
-            <input id="input-topic-field" type="text" class="validate">
-            <label for="input-topic-field">Topic value.</label>
-          </div>
-          <div id="input-topic-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="template-TopicValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">turned_in</i>
+              <input id="${template-TopicValue}-field" type="text" class="validate">
+              <label for="${template-TopicValue}-field">${Description}</label>
+            </div>
+            <div id="${template-TopicValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
           </div>
           <!-- TextValue input -->
-          <div id="input-text" class="col s12 input-field">
-            <i class="material-icons prefix">subject</i>
-            <textarea id="input-text-field" class="materialize-textarea"></textarea>
-            <label for="input-text-field">Text area.</label>
-          </div>
-          <div id="input-text-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="template-TextValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">subject</i>
+              <textarea id="${template-TextValue}-field" class="materialize-textarea"></textarea>
+              <label for="${template-TextValue}-field">${Description}</label>
+            </div>
+            <div id="${template-TextValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
           </div>
           <!-- PaswordValue input -->
-          <div class="col s12 row padding-horizontal-none margin-none">
-            <div id="input-password-current" class="col s12 input-field">
+          <div id="template-PasswordValue" class="col s12 row padding-horizontal-none margin-none">
+            <div id="${template-PasswordValue}-current" class="col s12 input-field">
               <i class="material-icons prefix">lock_outline</i>
-              <input id="input-password-current-field" type="password" class="validate">
-              <label for="input-password-current-field">Current password</label>
+              <input id="${template-PasswordValue}-current-field" type="password" class="validate">
+              <label for="${template-PasswordValue}-current-field">Current password</label>
             </div>
-            <div id="input-password-new" class="col s12 input-field">
+            <div id="${template-PasswordValue}-new" class="col s12 input-field">
               <i class="material-icons prefix">blank</i>
-              <input id="input-password-new-field" type="password" class="validate">
-              <label for="input-password-new-field">New password</label>
+              <input id="${template-PasswordValue}-new-field" type="password" class="validate">
+              <label for="${template-PasswordValue}-new-field">New password</label>
             </div>
-            <div id="input-password-verify" class="col s12 input-field">
+            <div id="${template-PasswordValue}-verify" class="col s12 input-field">
               <i class="material-icons prefix">blank</i>
-              <input id="input-password-verify-field" type="password" class="validate">
-              <label for="input-password-verify-field">New password (again)</label>
+              <input id="${template-PasswordValue}-verify-field" type="password" class="validate">
+              <label for="${template-PasswordValue}-verify-field">New password (again)</label>
             </div>
           </div>
-          <div id="input-password-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="${template-PasswordValue}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
           </div>
           <!-- TODO: ScriptValue input -->
           <!-- ObjectValue input -->
-          <div id="input-object" class="col s12 input-field">
-            <i class="material-icons prefix">widgets</i>
-            <select id="input-object-field">
-              <option value="" disabled selected>Select Object</option>
-              <option value="1">Option 1</option>
-              <option value="2">Option 2</option>
-              <option value="3">Option 3</option>
-            </select>
+          <div id="template-ObjectValue" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">widgets</i>
+              <select id="${template-ObjectValue}-field">
+                <option value="" disabled selected>Select Object</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option>
+              </select>
+            </div>
+            <div id="${template-ObjectValue}-description" class="col s12 italic padding-large">
+                ${DetailedDescription}
+            </div>
           </div>
-          <div id="input-object-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
-          </div>
-          <!-- TODO: ObjectList input -->
-          <div id="input-objectlist" class="col s12 row padding-horizontal-none margin-none">
-            <div id="input-objectlist-values" class="col s12 input-field">
+          <!-- ObjectList input -->
+          <div id="template-ObjectList" class="col s12 row padding-horizontal-none margin-none">
+            <div id="${template-ObjectList}-values" class="col s12 input-field">
               <i class="material-icons prefix">playlist_add</i>
               <div class="tag-list">
                 <div class="chip">Tag<i class="material-icons">close</i></div>
@@ -281,9 +303,9 @@
                 <div class="chip">Tag<i class="material-icons">close</i></div>
               </div>
             </div>
-            <div id="input-objectlist-select" class="col s12 input-field">
+            <div id="${template-ObjectList}-select" class="col s12 input-field">
               <i class="material-icons prefix">blank</i>
-              <select id="input-objectlist-field">
+              <select id="${template-ObjectList}-field">
                 <option value="" disabled selected>Select Option</option>
                 <option value="1">Option 1</option>
                 <option value="2">Option 2</option>
@@ -291,22 +313,23 @@
               </select>
             </div>
           </div>
-          <div id="input-objectlist-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
+          <div id="${template-ObjectList}-description" class="col s12 italic padding-large">
+            ${DetailedDescription}
           </div>
           <!-- OptionList input -->
-          <div id="input-optionlist" class="col s12 input-field">
-            <i class="material-icons prefix">list</i>
-            <select id="input-optionlist-field">
-              <option value="" disabled selected>Select Option</option>
-              <option value="1">Option 1</option>
-              <option value="2">Option 2</option>
-              <option value="3">Option 3</option>
-            </select>
-          </div>
-          <div id="input-object-description" class="col s12 italic padding-large">
-              Detailed description of what this field means.
-          </div>
+          <div id="template-OptionList" class="col s12">
+            <div class="input-field">
+              <i class="material-icons prefix">list</i>
+              <select id="${template-OptionList}-field">
+                <option value="disabled selected">Select Option</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option>
+              </select>
+            </div>
+            <div id="${template-OptionList}-description" class="col s12 italic padding-large">
+              ${DetailedDescription}
+            </div>
         </div>
       </main>
       <!-- Footer -->
