@@ -1,12 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
-using System.Reflection;
 using System.Globalization;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
 
@@ -34,7 +31,6 @@ namespace SensHub.Server.Managers
 		private const string DescriptionTag = "description";
 		private const string SelectionTag = "selection";
 		private const string TextTag = "text";
-		private const string OptionTag = "option";
 		private const string DisplayNameTag = "displayname";
 		private const string ShortDescriptionTag = "shortdescription";
 		private const string LongDescriptionTag = "longdescription";
@@ -45,6 +41,7 @@ namespace SensHub.Server.Managers
 		private const string NameAttribute = "name";
 		private const string LanguageAttribute = "lang";
 		private const string TypeAttribute = "type";
+        private const string SubtypeAttribute = "subtype";
 		private const string DefaultAttribute = "default";
         private const string ImageAttribute = "image";
 
@@ -101,28 +98,14 @@ namespace SensHub.Server.Managers
 			XmlNode attr = document.DocumentElement.Attributes.GetNamedItem(DefaultLangAttribute);
 			if (attr != null)
 				defaultLanguage = attr.Value;
-			// Find all the classes
-			foreach (XmlNode node in document.DocumentElement.ChildNodes)
+            // Find all the classes
+            foreach (XmlNode node in document.DocumentElement.SelectNodes(String.Format("{0}[@{1}]", ClassTag, NameAttribute)))
 			{
-				if (node.NodeType == XmlNodeType.Element)
-				{
-					if (node.Name != ClassTag)
-						LogHost.Default.Warn("Unexpected tag found in metadata file for {0} - expected <{1}>, found <{2}>.", baseName, ClassTag, node.Name);
-					else
-					{
-						attr = node.Attributes.GetNamedItem(NameAttribute);
-						if (attr == null)
-							LogHost.Default.Warn("Missing name attribute in class definition metadata for {0}.", baseName);
-						else
-						{
-							string className = baseName + "." + attr.Value;
-							LogHost.Default.Debug("Loading class definition for '{0}'", className);
-							ProcessClass(baseName, baseName + "." + attr.Value, defaultLanguage, (XmlElement)node);
-						}
-					}						
-				}
+				attr = node.Attributes.GetNamedItem(NameAttribute);
+				string className = baseName + "." + attr.Value;
+				LogHost.Default.Debug("Loading class definition for '{0}'", className);
+				ProcessClass(baseName, baseName + "." + attr.Value, defaultLanguage, (XmlElement)node);
 			}
-
 		}
 
 		#region XML Parser Helpers
@@ -134,24 +117,11 @@ namespace SensHub.Server.Managers
 		/// <returns></returns>
 		private static string GetLocalisedText(string defaultLang, XmlElement element, string textTag = TextTag)
 		{
-			var items = from node in element.ChildNodes.Cast<XmlElement>()
-						where (node.Name == textTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == CultureInfo.CurrentCulture.Name)
-						select node;
-			int count = items.Count();
-			if (count == 0)
-			{
-				// Look for the default language instead
-				items = from node in element.ChildNodes.Cast<XmlElement>()
-						where (node.Name == textTag) && (node.Attributes.GetNamedItem(LanguageAttribute).Value == defaultLang)
-						select node;
-				count = items.Count();
-			}
-			StringBuilder sb = new StringBuilder();
-			if (count == 0) 
-			{
-				LogHost.Default.Info("No text elements defined for this node.");
-			}
-			foreach (XmlElement text in items)
+            XmlNodeList nodes = element.SelectNodes(String.Format("{0}[@{1}='{2}']", textTag, LanguageAttribute, CultureInfo.CurrentCulture.Name));
+            if (nodes.Count == 0) // Look for default language instead
+                nodes = element.SelectNodes(String.Format("{0}[@{1}='{2}']", textTag, LanguageAttribute, defaultLang));
+			StringBuilder sb = new StringBuilder("");
+			foreach (XmlElement text in nodes)
 			{
 				sb.Append(text.InnerText);
 			}
@@ -166,62 +136,57 @@ namespace SensHub.Server.Managers
 		/// <returns></returns>
 		private static ObjectConfiguration ProcessConfiguration(string defaultLang, XmlElement parent)
 		{
-			List<ConfigurationValue> values = new List<ConfigurationValue>();
-			var items = from node in parent.ChildNodes.Cast<XmlElement>()
-						where node.Name == ValueTag
-						select node;
-			foreach (XmlElement element in items)
-			{
-				// Get required attributes (name, type and default)
-				Dictionary<string, string> attributes = new Dictionary<string,string>();
-				XmlAttribute attr;
-				foreach (string attrName in new string[] { NameAttribute, TypeAttribute, DefaultAttribute })
-				{
-					attr = element.Attributes.GetNamedItem(attrName) as XmlAttribute;
-					if (attr == null)
-						LogHost.Default.Warn("Value definition is missing required attribute '{0}'", attrName);
-					else
-						attributes[attrName] = attr.Value;
-				}
-				if (attributes.Count != 3)
-					continue; // Warning already logged
-				// Verify the type
-				ConfigurationValue.ValueType valueType;
-				if (!Enum.TryParse<ConfigurationValue.ValueType>(attributes[TypeAttribute], out valueType))
-				{
-					LogHost.Default.Warn("Unsupported value type '{0}' for configuration attribute {1}", attributes[TypeAttribute], attributes[NameAttribute]);
-					continue;
-				}
-				// We can build the configuration entry now
-				string description = GetLocalisedText(defaultLang, element);
-				ConfigurationValue configValue = new ConfigurationValue(
-					attributes[NameAttribute],
-					valueType,
-					attributes[DefaultAttribute],
-					description
-					);
-				if (valueType == ConfigurationValue.ValueType.OptionList)
-				{
-					// Process any options available
-					List<IObjectDescription> optionInfo = new List<IObjectDescription>();
-					var options = from node in element.ChildNodes.Cast<XmlElement>()
-								  where node.Name == OptionTag
-								  select node;
-					foreach (XmlElement optionElement in options)
-					{
-						attr = element.Attributes.GetNamedItem(NameAttribute) as XmlAttribute;
-						if (attr == null)
-						{
-							LogHost.Default.Warn("Option element for value '{0}' does not specify a name.", attributes[NameAttribute]);
-							continue;
-						}
-						ObjectDescription optionDescription = ProcessDescription(defaultLang, optionElement);
-						if (optionDescription != null) 
-							optionInfo.Add(optionDescription);
-					}
-					configValue.Options = optionInfo;
-				}
-				values.Add(configValue);
+            List<ConfigurationValue> values = new List<ConfigurationValue>();
+            XmlNodeList nodes = parent.SelectNodes(String.Format("{0}[@{1} and @{2} and @{3}]", ValueTag, NameAttribute, TypeAttribute, DefaultAttribute));
+            foreach (XmlNode node in nodes)
+            {
+                // Get required attributes (name, type and default)
+                Dictionary<string, string> attributes = new Dictionary<string, string>();
+                attributes[NameAttribute] = node.Attributes.GetNamedItem(NameAttribute).Value;
+                attributes[TypeAttribute] = node.Attributes.GetNamedItem(TypeAttribute).Value;
+                attributes[DefaultAttribute] = node.Attributes.GetNamedItem(DefaultAttribute).Value;
+                LogHost.Default.Debug("Adding configuration entry '{0}' ({1})", attributes[NameAttribute], attributes[TypeAttribute]);
+                // Verify the type
+                ConfigurationValue.ValueType valueType;
+                if (!Enum.TryParse(attributes[TypeAttribute], false, out valueType))
+                {
+                    LogHost.Default.Warn("Unrecognised configuration type '{0}'", attributes[TypeAttribute]);
+                    continue;
+                }
+                // Process the description of the entry
+                ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)node);
+                ConfigurationValue configValue = new ConfigurationValue(
+                    attributes[NameAttribute],
+                    valueType,
+                    attributes[DefaultAttribute],
+                    description
+                    );
+                values.Add(configValue);
+                // Do type specific configuration
+                if (valueType == ConfigurationValue.ValueType.OptionList)
+                {
+                    // Build a list of individual options
+                    XmlNodeList optionNodes = node.SelectNodes(string.Format("{0}[@{1}]", SelectionTag, NameAttribute));
+                    if (optionNodes.Count == 0)
+                    {
+                        LogHost.Default.Error("Configuration values of type 'OptionList' require options.");
+                        return null;
+                    }
+                    List<IObjectDescription> options = new List<IObjectDescription>();
+                    foreach (XmlNode item in optionNodes)
+                        options.Add(ProcessDescription(defaultLang, (XmlElement)item));
+                    configValue.Options = options;
+                }
+                if ((valueType == ConfigurationValue.ValueType.ObjectList) || (valueType == ConfigurationValue.ValueType.ObjectValue))
+                {
+                    UserObjectType objectType;
+                    if (!Enum.TryParse(node.Attributes.GetNamedItem(SubtypeAttribute).Value, true, out objectType))
+                    {
+                        LogHost.Default.Error("Fields of type {0} require a valid '{1}' attribute.", valueType, SubtypeAttribute);
+                        return null;
+                    }
+                    configValue.Subtype = objectType;
+                }
 			}
 			return new ObjectConfiguration(values);
 		}
@@ -241,16 +206,14 @@ namespace SensHub.Server.Managers
 			description.DisplayName = GetLocalisedText(defaultLang, parent, DisplayNameTag);
 			description.Description = GetLocalisedText(defaultLang, parent, ShortDescriptionTag);
 			description.DetailedDescription = GetLocalisedText(defaultLang, parent, LongDescriptionTag);
-            // TODO: Handle the icon differently
-            var items = from node in parent.ChildNodes.Cast<XmlElement>()
-                        where node.Name == IconTag
-                        select node;
-            int count = items.Count();
-            if (count > 0)
+            // Handle the icon differently
+            XmlNodeList nodes = parent.SelectNodes(string.Format("{0}[@{1}]", IconTag, ImageAttribute));
+            if (nodes.Count > 0)
             {
-                XmlAttribute attr = (XmlAttribute)items.First().Attributes.GetNamedItem(ImageAttribute);
+                XmlAttribute attr = (XmlAttribute)nodes[0].Attributes.GetNamedItem(ImageAttribute);
                 description.Icon = attr.Value.Trim();
             }
+            // Done
             return description;
 		}
 
@@ -264,33 +227,26 @@ namespace SensHub.Server.Managers
 		private static void ProcessClass(string assembly, string className, string defaultLang, XmlElement element)
 		{
 			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
-			// Process configuration first
-			var items = from node in element.ChildNodes.Cast<XmlNode>()
-						where (node.Name == ConfigurationTag) && (node.NodeType == XmlNodeType.Element)
-						select node;
-			int count = items.Count();
-			if (count > 1)
-				LogHost.Default.Warn("Multiple configuration entries for class '{0}'", className);
-			else if (count == 1)
-			{
-				LogHost.Default.Debug("Loading configuration definition for class '{0}'", className);
-				mot.AddConfigurationDescription(className, ProcessConfiguration(defaultLang, (XmlElement)items.First()));
-			}
-			// Process description
-			items = from node in element.ChildNodes.Cast<XmlNode>()
-					where (node.Name == DescriptionTag) && (node.NodeType == XmlNodeType.Element)
-					select node;
-			count = items.Count();
-			if (count > 1)
-				LogHost.Default.Warn("Multiple description entries for class '{0}'", className);
-			else if (count == 1)
-			{
-				LogHost.Default.Debug("Loading description definition for class '{0}'", className);
-                ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)items.First());
+            // Process the description
+            XmlNodeList nodes = element.SelectNodes(DescriptionTag);
+            if (nodes.Count > 0)
+            {
+                // Process the description
+                LogHost.Default.Debug("Loading description definition for class '{0}'", className);
+                ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)nodes[0]);
                 if ((description.Icon != null) && (description.Icon.Length > 0))
                     description.Icon = BaseImageUrl + assembly + "." + description.Icon;
                 mot.AddDescription(className, description);
-			}
+            }
+            nodes = element.SelectNodes(ConfigurationTag);
+            if (nodes.Count > 0)
+            {
+                // Process the configuration
+                LogHost.Default.Debug("Loading configuration definition for class '{0}'", className);
+                ObjectConfiguration config = ProcessConfiguration(defaultLang, (XmlElement)nodes[0]);
+                if (config != null)
+                    mot.AddConfigurationDescription(className, config);
+            }
 		}
 		#endregion
 

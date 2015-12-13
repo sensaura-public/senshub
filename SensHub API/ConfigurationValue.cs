@@ -43,11 +43,12 @@ namespace SensHub.Plugins
 
 		public UserObjectType Subtype { get; set; }
 
-        public ConfigurationValue(string name, ValueType type, object defaultValue, string description)
+        public ConfigurationValue(string name, ValueType type, object defaultValue, IObjectDescription description)
 		{
 			DisplayName = name;
 			Type = type;
-			Description = description;
+            Description = description.Description;
+            DetailedDescription = description.DetailedDescription;
 			DefaultValue = defaultValue;
 		}
 
