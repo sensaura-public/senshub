@@ -307,22 +307,35 @@ function showConfiguration(id) {
     // Create the fields
     container = $("#" + id + "-fields");
     for (var i = 0; i<data.details.length; i++) {
-      field = data.details[i];
+      field = clone(data.details[i]);
+      if (data.active.hasOwnProperty(field["DisplayName"]))
+        field["Value"] = data.active[field["DisplayName"]];
+      else
+        field["Value"] = field["DefaultValue"];
       $widget = copyTemplate("template-" + field["ValueType"], field["DisplayName"], field);
       container.append($widget);
       // TODO: Customise for type
-      if (field["ValueType"]=="OptionList") {
+      if (field["ValueType"]=="BooleanValue") {
+        $("#" + field["DisplayName"] + "-enabled").checked = field["Value"];
+        }
+      else if (field["ValueType"]=="OptionList") {
         // Add the options
+        optContainer = $("#" + field["DisplayName"] + "-field");
+        for (var j = 0; j < field["Options"].length; j++) {
+          $opt = copyTemplate("template-option-entry", field["DisplayName"], field["Options"][j]);
+          if (field["Options"][j]["DisplayName"] == field["Value"])
+            $opt.attr("selected", "");
+          optContainer.append($opt);
+          }
         // Set up the selection widget
         $("#" + field["DisplayName"] + "-field").material_select();
         }
       else if (field["ValueType"]=="ObjectList") {
-        // Add the options
+        // TODO: Add the options
         // Set up the selection widget
         $("#" + field["DisplayName"] + "-field").material_select();
         }
       }
-    container = $("#" + id + "-fields");
     // And show the dialog
     inConfig = false;
     $("#" + id).openModal();
