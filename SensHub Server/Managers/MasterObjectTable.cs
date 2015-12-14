@@ -345,10 +345,31 @@ namespace SensHub.Server.Managers
 		/// <param name="config"></param>
 		/// <returns></returns>
 		[RpcCall("SetConfiguration", AuthenticationRequired = true)]
-		public bool RpcSetConfiguration(string id, IDictionary<string, object> config)
+		public List<string> RpcSetConfiguration(string id, IDictionary<string, object> config)
 		{
-			// TODO: Implement this
-			throw new NotImplementedException("This method is not yet implemented.");
+			// Make sure the object ID is valid
+			Guid uuid;
+			if (!Guid.TryParse(id, out uuid))
+				throw new ArgumentException("Invalid object ID");
+			// Make sure it is an object and it is configurable
+			IUserObject instance = GetInstance(uuid);
+			if (instance == null)
+				throw new ArgumentException("No such object");
+			if (instance.ObjectType.IsFactory() || !typeof(IConfigurable).IsAssignableFrom(instance.GetType()))
+				throw new ArgumentException("Cannot apply configuration to this type of object.");
+			// Get the matching configuration description
+			ObjectConfiguration desc = GetConfigurationDescription(uuid);
+			if (desc == null)
+				throw new ArgumentException("No configuration description available for object.");
+			// Verify the configuration
+			List<string> failed = new List<string>();
+			config = desc.Verify(config, failed);
+			if (config != null) 
+			{
+				IConfigurable configurable = instance as IConfigurable;
+				configurable.ApplyConfiguration(ConfigurationImpl.Create(desc, config));
+			}
+			return failed;
 		}
 
 		/// <summary>

@@ -32,6 +32,41 @@ namespace SensHub.Plugins
 			m_configuration = new List<ConfigurationValue>(description);
 		}
 
+		/// <summary>
+		/// Verify a set of data for the configuration
+		/// </summary>
+		/// <param name="values"></param>
+		/// <param name="failed"></param>
+		/// <returns></returns>
+		public IDictionary<string, object> Verify(IDictionary<string, object> values, IList<string> failed = null)
+		{
+			bool success = true;
+			Dictionary<string, object> result = new Dictionary<string, object>();
+			foreach (ConfigurationValue value in m_configuration)
+			{
+				object source;
+				if (values.ContainsKey(value.DisplayName))
+					source = values[value.DisplayName];
+				else
+					source = value.DefaultValue;
+				try
+				{
+					source = value.Validate(source);
+				}
+				catch (Exception) {
+					source = null;
+				}
+				if (source == null) 
+				{
+					success = true;
+					if (failed != null)
+						failed.Add(value.DisplayName);
+				}
+				else
+					result[value.DisplayName] = source;
+			}
+			return success?result:null;
+		}
 		#region Implementation of IReadOnlyList
 		public ConfigurationValue this[int index]
 		{

@@ -22,6 +22,13 @@ namespace SensHub.Server.Managers
             // Do nothing in this constructor
         }
 
+		public static ConfigurationImpl Create(IReadOnlyList<ConfigurationValue> description, IDictionary<string, object> values)
+		{
+			ConfigurationImpl result = new ConfigurationImpl(description, values);
+			// TODO: What filename?
+			return result;
+		}
+
         public static ConfigurationImpl Load(string filename, IReadOnlyList<ConfigurationValue> description)
         {
             FileSystem configDir = Locator.Current.GetService<FileSystem>();
