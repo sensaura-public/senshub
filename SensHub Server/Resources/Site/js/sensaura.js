@@ -288,6 +288,7 @@ function updatePlugin(id, info) {
   }
 
 var inConfig = false;
+var configs = { };
 
 // Build and display the configuration dialog for the given object ID
 function showConfiguration(id) {
@@ -301,6 +302,7 @@ function showConfiguration(id) {
       inConfig = false;
       return;
       }
+    configs[id] = data.details;
     // Copy the template for the dialog
     $config = copyTemplate("template-config", id, objectList[id]);
     $("#modals").prepend($config);
@@ -312,7 +314,7 @@ function showConfiguration(id) {
         field["Value"] = data.active[field["DisplayName"]];
       else
         field["Value"] = field["DefaultValue"];
-      $widget = copyTemplate("template-" + field["ValueType"], field["DisplayName"], field);
+      $widget = copyTemplate("template-" + field["ValueType"], id + "-" + field["DisplayName"], field);
       container.append($widget);
       // TODO: Customise for type
       if (field["ValueType"]=="BooleanValue") {
@@ -320,20 +322,21 @@ function showConfiguration(id) {
         }
       else if (field["ValueType"]=="OptionList") {
         // Add the options
-        optContainer = $("#" + field["DisplayName"] + "-field");
+        optContainer = $("#" + id + "-" + field["DisplayName"] + "-field");
         for (var j = 0; j < field["Options"].length; j++) {
-          $opt = copyTemplate("template-option-entry", field["DisplayName"], field["Options"][j]);
+          var $opt = copyTemplate("template-option-entry", id + "-" + field["DisplayName"] + "-" + field["Options"][j].DisplayName, field["Options"][j]);
+          $opt.attr("value", field["Options"][j].DisplayName);
           if (field["Options"][j]["DisplayName"] == field["Value"])
             $opt.attr("selected", "");
           optContainer.append($opt);
           }
         // Set up the selection widget
-        $("#" + field["DisplayName"] + "-field").material_select();
+        $("#" + id + "-" + field["DisplayName"] + "-field").material_select();
         }
       else if (field["ValueType"]=="ObjectList") {
         // TODO: Add the options
         // Set up the selection widget
-        $("#" + field["DisplayName"] + "-field").material_select();
+        $("#" + id + "-" + field["DisplayName"] + "-field").material_select();
         }
       }
     // And show the dialog
@@ -344,6 +347,35 @@ function showConfiguration(id) {
 
 // Apply the configuration by sending it to the server
 function applyConfiguration(id) {
+  // Get the cached configuration description
+  var config = configs[id];
+  delete configs[id];
+  // Walk through the values
+  var values = { };
+  for (var i=0; i<config.length; i++) {
+    name = config[i].DisplayName;
+    type = config[i].ValueType;
+    if (type=="BooleanValue") {
+      console.log("TODO: Special handling needed for " + type);
+      }
+    else if (type=="TextValue") {
+      console.log("TODO: Special handling needed for " + type);
+      }
+    else if (type=="ScriptValue") {
+      console.log("TODO: Special handling needed for " + type);
+      }
+    else if (type=="ObjectList") {
+      console.log("TODO: Special handling needed for " + type);
+      }
+    else if (type=="PasswordValue") {
+      console.log("TODO: Special handling needed for " + type);
+      }
+    else {
+      values[name] = $("#" + id + "-" + name + "-field")[0].value;
+      console.log(name + " = '" + values[name] + "'");
+      }
+    }
+  // TODO: Update configuration
   closeConfiguration(id);
   }
 
