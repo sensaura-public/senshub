@@ -342,6 +342,18 @@ function showConfiguration(id) {
     });
   }
 
+// Apply the configuration by sending it to the server
+function applyConfiguration(id) {
+  closeConfiguration(id);
+  }
+
+// Close the configuration form and clean up elements
+function closeConfiguration(id) {
+  var config = $('#' + id)
+  config.closeModal();
+  config[0].parentNode.removeChild(config[0]);    
+  }
+
 //---------------------------------------------------------------------------
 // Initial page setup
 //---------------------------------------------------------------------------
