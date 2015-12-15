@@ -237,8 +237,12 @@ namespace SensHub.Server.Managers
 				return null;
 			// Load the configuration values from the file (if it exists)
 			IDictionary<string, object> values = null;
-			if (m_configDirectory.FileExists(filename))
-				values = ObjectPacker.UnpackRaw(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename));
+			if (m_configDirectory.FileExists(filename)) 
+			{
+				Stream json = File.Open(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename), FileMode.Open, FileAccess.Read);
+				values = ObjectPacker.UnpackRaw(json);
+				json.Close();
+			}
 			else
 				values = new Dictionary<string, object>();
 			return description.Verify(values);
@@ -321,8 +325,12 @@ namespace SensHub.Server.Managers
 			// TODO: Currently loading from file, should be stored in DB
 			IDictionary<string, object> values = null;
 			string filename = string.Format("{0}.json", forInstance);
-			if (m_configDirectory.FileExists(filename))
-				values = ObjectPacker.UnpackRaw(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename));
+			if (m_configDirectory.FileExists(filename)) 
+			{
+				Stream json = File.Open(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename), FileMode.Open, FileAccess.Read);
+				values = ObjectPacker.UnpackRaw(json);
+				json.Close();
+			}
 			else
 				values = new Dictionary<string, object>();
 			return description.Verify(values);
