@@ -245,7 +245,7 @@ namespace SensHub.Server.Managers
 			/// <param name="values"></param>
 			/// <param name="failed"></param>
 			/// <returns></returns>
-			public IDictionary<string, object> Verify(IDictionary<string, object> values, IList<string> failed = null)
+			public IDictionary<string, object> Verify(IDictionary<string, object> values, IDictionary<string, string> failures = null)
 			{
 				bool success = true;
 				Dictionary<string, object> result = new Dictionary<string, object>();
@@ -257,20 +257,20 @@ namespace SensHub.Server.Managers
 					else
 						source = value.DefaultValue;
 					// Validate the value according to type
-
 					try
 					{
 						object adjusted;
 						source = (value.Validate(source, out adjusted)) ? adjusted : null;
 					}
-					catch (Exception) {
+					catch (Exception) 
+					{
 						source = null;
 					}
 					if (source == null) 
 					{
-						success = true;
-						if (failed != null)
-							failed.Add(value.DisplayName);
+						success = false;
+						if (failures != null)
+							failures.Add(value.DisplayName, "");
 					}
 					else
 						result[value.DisplayName] = source;

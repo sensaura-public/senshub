@@ -124,7 +124,6 @@ namespace SensHub.Server.Managers
 				{
 					foreach (Guid uuid in m_pluginsAvailable.Keys)
 					{
-						// TODO: Make sure the plugin is enabled
 						// Create the IPluginHost for this plugin and enable it
 						PluginHost host = new PluginHost(m_pluginsAvailable[uuid]);
 						if (host.EnablePlugin())

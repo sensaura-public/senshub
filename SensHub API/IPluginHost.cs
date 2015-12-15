@@ -45,8 +45,18 @@ namespace SensHub.Plugins
 		/// </summary>
 		IFolder Datastore { get; }
 
+		/// <summary>
+		/// Register an ActionFactory for creating new Action types
+		/// </summary>
+		/// <param name="factory"></param>
+		/// <returns></returns>
 		bool RegisterActionFactory(AbstractActionFactory factory);
 
+		/// <summary>
+		/// Register a SourceFactory for creating new Source types
+		/// </summary>
+		/// <param name="factory"></param>
+		/// <returns></returns>
 		bool RegisterSourceFactory(AbstractSourceFactory factory);
     }
 }

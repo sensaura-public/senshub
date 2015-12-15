@@ -31,7 +31,6 @@ namespace SensHub.Server.Managers
 		}
 
 		#region Implementation of IPluginHost
-
 		public Version Version
 		{
 			get { return Assembly.GetEntryAssembly().GetName().Version; }
@@ -112,9 +111,49 @@ namespace SensHub.Server.Managers
 		#endregion
 
 		#region Custom Operations
-
+		/// <summary>
+		/// Enable the plugin
+		/// </summary>
+		/// <returns></returns>
 		public bool EnablePlugin()
 		{
+			// Add the plugin to the MOT on the assumption it will work
+			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
+			mot.AddInstance(m_plugin);
+			// If the plugin supports configuration we need to give it one before
+			// initialisation
+			IConfigurable configurable = m_plugin as IConfigurable;
+			if (configurable != null)
+			{
+				IConfigurationDescription description = mot.GetConfigurationDescription(m_plugin.UUID);
+				IDictionary<string, object> values = mot.GetConfiguration(m_plugin.UUID);
+				Dictionary<string, string> failures = new Dictionary<string,string>();
+				if (!configurable.ValidateConfiguration(description, values, failures))
+				{
+					StringBuilder sb = new StringBuilder();
+					string separator = "";
+					foreach (KeyValuePair<string, string> message in failures)
+					{
+						sb.Append(separator);
+						separator = ", ";
+						sb.Append(String.Format("'{0}' - {1}", message.Key, message.Value));
+					}
+					this.Log().Error("One or more configuration values are not applicable - " + sb.ToString());
+					mot.RemoveInstance(m_plugin.UUID);
+					return false;
+				}
+				try
+				{
+					configurable.ApplyConfiguration(description, values);
+				}
+				catch (Exception ex)
+				{
+					this.Log().Error("Unable to apply configuration to plugin - {0}.", ex.ToString());
+					mot.RemoveInstance(m_plugin.UUID);
+					return false;
+				}
+			}
+			// Now try and initialise it
 			bool initialised = false;
 			try
 			{
@@ -126,27 +165,11 @@ namespace SensHub.Server.Managers
 			}
 			catch (Exception ex)
 			{
-				this.Log().Error("Failed to initialise plugin - {0}", ex.ToString());
+				this.Log().Error("Failed to initialise plugin - {0}", ex.Message);
 			}
-			if (initialised)
+			if (!initialised)
 			{
-				MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
-				mot.AddInstance(m_plugin);
-				// Apply configuration if needed
-				IConfigurable configurable = m_plugin as IConfigurable;
-				if (configurable != null)
-				{
-					IConfigurationDescription description = mot.GetConfigurationDescription(m_plugin.UUID);
-					IDictionary<string, object> values = mot.GetConfiguration(m_plugin.UUID);
-					try
-					{
-						configurable.ApplyConfiguration(description, values);
-					}
-					catch (Exception ex)
-					{
-						this.Log().Error("Unable to apply configuration to plugin - {0}.", ex.ToString());
-					}
-				}
+				mot.RemoveInstance(m_plugin.UUID);
 			}
 			return initialised;
 		}
