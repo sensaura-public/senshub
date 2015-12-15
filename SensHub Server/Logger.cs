@@ -34,10 +34,12 @@ namespace SensHub.Server
 			m_builder = new MessageBuilder();
 		}
 
-		public void Enable()
+		public void Enable(LogLevel logLevel)
 		{
 			lock (this)
 			{
+				// Set the logging level
+				Level = logLevel;
 				// Setup (or reinitialise) the target map
 				if (m_targets != null)
 				{
@@ -51,13 +53,6 @@ namespace SensHub.Server
 				}
 				else
 					m_targets = new Dictionary<LogLevel, LogTarget>();
-				// Get the log level from the server configuration
-				LogLevel logLevel = LogLevel.Warn;
-// TODO: Reimplement this
-//				Configuration serverConfig = Locator.Current.GetService<Configuration>();
-//				if (!Enum.TryParse<LogLevel>(serverConfig["logLevel"].ToString(), out logLevel))
-//					logLevel = LogLevel.Warn;
-				Level = logLevel;
 				// Set up the targets
 				FileSystem fs = Locator.Current.GetService<FileSystem>();
 				fs = (FileSystem)fs.OpenFolder("logs");
@@ -117,7 +112,7 @@ namespace SensHub.Server
 				}
 				// Check for log file rollover
 				if (now.DayOfYear != m_lastLogOpen.DayOfYear)
-					Enable();
+					Enable(Level);
 			}
 		}
 	}

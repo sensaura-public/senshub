@@ -14,6 +14,11 @@ namespace SensHub.Server
 	/// </summary>
 	internal class FileSystem : IFolder, IEnableLogger
 	{
+		// Top level file locations.
+		public const string DataFolder = "data";
+		public const string PluginFolder = "plugins";
+		public const string SiteFolder = "site";
+
 		// Base path and custom locations
 		private string m_path;
 		private Dictionary<string, IFolder> m_folders;

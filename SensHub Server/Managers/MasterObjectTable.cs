@@ -27,7 +27,7 @@ namespace SensHub.Server.Managers
 		private Dictionary<Guid, IUserObject> m_instances;
 		private Dictionary<string, IObjectDescription> m_descriptions = new Dictionary<string, IObjectDescription>();
 		private Dictionary<string, IConfigurationDescription> m_configinfo = new Dictionary<string, IConfigurationDescription>();
-
+		private IFolder m_configDirectory;
         public List<Assembly> Assemblies { get; private set; }
 
 		/// <summary>
@@ -39,6 +39,9 @@ namespace SensHub.Server.Managers
 			m_descriptions = new Dictionary<string, IObjectDescription>();
 			m_configinfo = new Dictionary<string, IConfigurationDescription>();
             Assemblies = new List<Assembly>();
+			// Get the containing folder for configurations
+			FileSystem fs = Locator.Current.GetService<FileSystem>();
+			m_configDirectory = fs.OpenFolder(FileSystem.DataFolder);
         }
 
         /// <summary>
@@ -71,12 +74,45 @@ namespace SensHub.Server.Managers
 			return mot;
 		}
 
+		#region Internal Implementation
+		/// <summary>
+		/// Get information about an object.
+		/// </summary>
+		/// <param name="forInstance"></param>
+		/// <param name="instance"></param>
+		/// <param name="description"></param>
+		/// <returns></returns>
+		private bool GetObjectInformation(Guid forInstance, out IUserObject instance, out IConfigurationDescription description)
+		{
+			description = null;
+			instance = GetInstance(forInstance);
+			if (instance == null)
+			{
+				this.Log().Warn("Requested configuration for non-existant object '{0}'", forInstance);
+				return false;
+			}
+			IConfigurable configurable = instance as IConfigurable;
+			if (configurable == null)
+			{
+				this.Log().Warn("Requested configuration for unconfigurable object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
+				return false;
+			}
+			description = GetConfigurationDescription(forInstance);
+			if (description == null)
+			{
+				this.Log().Warn("No configuration description for object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
+				return false;
+			}
+			return true;
+		}
+		#endregion
+
 		#region Initial Setup
 		/// <summary>
 		/// Add an object instance to the master table
 		/// </summary>
 		/// <param name="instance"></param>
-		public bool AddInstance(IUserObject instance)
+		internal bool AddInstance(IUserObject instance)
 		{
 			lock (m_instances)
 			{
@@ -117,7 +153,7 @@ namespace SensHub.Server.Managers
 		/// Remove an instance from the master table.
 		/// </summary>
 		/// <param name="uuid"></param>
-		public bool RemoveInstance(Guid uuid)
+		internal bool RemoveInstance(Guid uuid)
 		{
 			lock (m_instances)
 			{
@@ -140,7 +176,7 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		/// <param name="clsName"></param>
 		/// <param name="description"></param>
-		public void AddDescription(string clsName, IObjectDescription description)
+		internal void AddDescription(string clsName, IObjectDescription description)
 		{
 			lock (m_descriptions)
 			{
@@ -156,7 +192,7 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		/// <param name="clsName"></param>
 		/// <param name="configuration"></param>
-		public void AddConfigurationDescription(string clsName, IConfigurationDescription configuration)
+		internal void AddConfigurationDescription(string clsName, IConfigurationDescription configuration)
 		{
 			lock (m_configinfo)
 			{
@@ -172,7 +208,7 @@ namespace SensHub.Server.Managers
 		/// from an assembly.
 		/// </summary>
 		/// <param name="assembly"></param>
-		public void AddMetaData(Assembly assembly)
+		internal void AddMetaData(Assembly assembly)
 		{
             Assemblies.Add(assembly);
 			Stream source = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Resources.metadata.xml");
@@ -182,6 +218,30 @@ namespace SensHub.Server.Managers
 				return;
 			}
 			MetadataParser.LoadFromStream(assembly.GetName().Name, source);
+		}
+
+		/// <summary>
+		/// Get the configuration for the instance
+		/// 
+		/// This version of the method loads directly from a named file (the file must
+		/// still be in the 'configs' folder.
+		/// </summary>
+		/// <param name="forInstance"></param>
+		/// <param name="filename"></param>
+		/// <returns></returns>
+		internal IDictionary<string, object> GetConfigurationFromFile(Guid forInstance, string filename)
+		{
+			IUserObject instance;
+			IConfigurationDescription description;
+			if (!GetObjectInformation(forInstance, out instance, out description))
+				return null;
+			// Load the configuration values from the file (if it exists)
+			IDictionary<string, object> values = null;
+			if (m_configDirectory.FileExists(filename))
+				values = ObjectPacker.UnpackRaw(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename));
+			else
+				values = new Dictionary<string, object>();
+			return description.Verify(values);
 		}
 		#endregion
 
@@ -254,25 +314,18 @@ namespace SensHub.Server.Managers
 		/// <returns></returns>
 		public IDictionary<string, object> GetConfiguration(Guid forInstance)
 		{
-			IUserObject instance = GetInstance(forInstance);
-			if (instance == null)
-			{
-				this.Log().Warn("Requested configuration for non-existant object '{0}'", forInstance);
+			IUserObject instance;
+			IConfigurationDescription description;
+			if (!GetObjectInformation(forInstance, out instance, out description))
 				return null;
-			}
-			IConfigurable configurable = instance as IConfigurable;
-			if (configurable == null)
-			{
-				this.Log().Warn("Requested configuration for unconfigurable object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
-				return null;
-			}
-			IConfigurationDescription configuration = GetConfigurationDescription(forInstance);
-			if (configuration == null) {
-				this.Log().Warn("No configuration description for object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
-				return null;
-			}
-			// TODO: Implement this
-			return null;
+			// TODO: Currently loading from file, should be stored in DB
+			IDictionary<string, object> values = null;
+			string filename = string.Format("{0}.json", forInstance);
+			if (m_configDirectory.FileExists(filename))
+				values = ObjectPacker.UnpackRaw(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename));
+			else
+				values = new Dictionary<string, object>();
+			return description.Verify(values);
 		}
 
 		/// <summary>

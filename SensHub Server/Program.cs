@@ -97,15 +97,14 @@ namespace SensHub.Server
 			// TODO: Create and add the server instance
 			Program server = new Program();
 			mot.AddInstance(server);
-            // Load the server configuration and make it globally available
-// TODO: Reimplement this
-//            ConfigurationImpl serverConfig = ConfigurationImpl.Load(
-//                "SensHub.json",
-//                mot.GetConfigurationDescription(server.UUID)
-//                );
-//            Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
+            // Load the server configuration
+			IConfigurationDescription serverConfigDescription = mot.GetConfigurationDescription(server.UUID);
+			IDictionary<string, object> serverConfig = mot.GetConfigurationFromFile(server.UUID, "SensHub.json");
             // Initialise logging now we have a server configuration
-			logger.Enable();
+			LogLevel logLevel;
+			if (!Enum.TryParse<LogLevel>(serverConfigDescription.GetAppliedValue(serverConfig, "logLevel").ToString(), out logLevel))
+				logLevel = LogLevel.Warn;
+			logger.Enable(logLevel);
             // Set up the  HttpServer
 			string webSite = options.WebDirectory;
 			if (webSite == null)

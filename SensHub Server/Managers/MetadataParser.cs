@@ -139,6 +139,7 @@ namespace SensHub.Server.Managers
 				return results;
 			}
 		}
+
 		/// <summary>
 		/// Implementation of IConfigurationDescription
 		/// </summary>
@@ -146,6 +147,7 @@ namespace SensHub.Server.Managers
 		{
 			// Instance variables
 			private List<IConfigurationValue> m_configuration;
+			private Dictionary<string, IConfigurationValue> m_mapping;
 
 			/// <summary>
 			/// Constructor from a list of configuration values
@@ -154,6 +156,7 @@ namespace SensHub.Server.Managers
 			public ConfigurationDescription(List<IConfigurationValue> description)
 			{
 				m_configuration = description;
+				BuildMapping();
 			}
 
 			/// <summary>
@@ -163,6 +166,17 @@ namespace SensHub.Server.Managers
 			public ConfigurationDescription(IConfigurationValue[] description)
 			{
 				m_configuration = new List<IConfigurationValue>(description);
+				BuildMapping();
+			}
+
+			/// <summary>
+			/// Build the mapping of names to values for faster lookup.
+			/// </summary>
+			private void BuildMapping()
+			{
+				m_mapping = new Dictionary<string, IConfigurationValue>();
+				foreach (IConfigurationValue value in m_configuration)
+					m_mapping[value.DisplayName] = value;
 			}
 
 			/// <summary>
@@ -202,6 +216,26 @@ namespace SensHub.Server.Managers
 						result[value.DisplayName] = source;
 				}
 				return success?result:null;
+			}
+
+			/// <summary>
+			/// Get the value applied to the named property.
+			/// 
+			/// This will return the configured value or the default if it not set.
+			/// </summary>
+			/// <param name="values"></param>
+			/// <param name="name"></param>
+			/// <returns></returns>
+			public object GetAppliedValue(IDictionary<string, object> values, string name)
+			{
+				// Is it a valid name
+				if (!m_mapping.ContainsKey(name))
+					return null;
+				// Do we have an explicit value ?
+				if ((values != null) && (values.ContainsKey(name)))
+					return values[name];
+				// Return the default
+				return m_mapping[name].DefaultValue;
 			}
 
 			#region Implementation of IReadOnlyList
