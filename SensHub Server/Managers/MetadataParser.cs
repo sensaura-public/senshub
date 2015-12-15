@@ -88,18 +88,23 @@ namespace SensHub.Server.Managers
 
 			public object DefaultValue { get; private set; }
 
-			public List<IObjectDescription> Options { get; set; }
+			public List<IObjectDescription> Options { get; private set; }
 
-			public UserObjectType Subtype { get; set; }
+			public UserObjectType Subtype { get; private set; }
 			#endregion
 
-			public ConfigurationValue(string name, ConfigurationValueType type, object defaultValue, IObjectDescription description)
+			public ConfigurationValue(string name, ConfigurationValueType type, object defaultValue, IObjectDescription description, List<IObjectDescription> options = null, UserObjectType subType = UserObjectType.None)
 			{
 				DisplayName = name;
 				Type = type;
 				Description = description.Description;
 				DetailedDescription = description.DetailedDescription;
-				DefaultValue = defaultValue;
+				Options = options;
+				Subtype = subType;
+				object verifiedDefault;
+				if (!Validate(defaultValue, out verifiedDefault))
+					throw new ArgumentException("Default value is not acceptable for this type.");
+				DefaultValue = verifiedDefault;
 			}
 
 			/// <summary>
@@ -110,8 +115,63 @@ namespace SensHub.Server.Managers
 			/// <returns></returns>
 			public bool Validate(object value, out object adjusted)
 			{
-				// TODO: More complete implementation for different types
-				adjusted = value;
+				bool result = true;
+				string strVal;
+				int intVal;
+				adjusted = null;
+				switch (Type)
+				{
+					case ConfigurationValueType.ScriptValue:
+					case ConfigurationValueType.StringValue:
+					case ConfigurationValueType.TextValue:
+						// These are just arbitrary strings
+						adjusted = (value == null) ? "" : value.ToString();
+						break;
+					case ConfigurationValueType.PasswordValue:
+						// Like a string but must be more either 0 or more than 8 characters
+						strVal = (value == null) ? "" : value.ToString();
+						if ((strVal.Length > 0) && (strVal.Length < 8))
+							result = false;
+						else
+						{
+							// TODO: Validate contents
+							adjusted = strVal;
+						}
+						break;
+					case ConfigurationValueType.BooleanValue:
+						// Accept 'true' (with any case) as true, everything else is false
+						strVal = (value == null) ? "" : value.ToString().ToLower();
+						adjusted = (strVal == "true");
+						break;
+					case ConfigurationValueType.OptionList:
+						// Must be one of the given options
+						strVal = (value == null) ? "" : value.ToString();
+						result = false;
+						foreach (IObjectDescription option in Options)
+						{
+							if (option.DisplayName == strVal)
+							{
+								adjusted = strVal;
+								result = true;;
+							}
+						}
+						break;
+					case ConfigurationValueType.NumericValue:
+						// Only integers are supported
+						strVal = (value == null) ? "" : value.ToString();
+						if (!Int32.TryParse(strVal, out intVal))
+							result = false;
+						else
+							adjusted = intVal;
+						break;
+					case ConfigurationValueType.DateValue:
+					case ConfigurationValueType.ObjectList:
+					case ConfigurationValueType.ObjectValue:
+					case ConfigurationValueType.TimeValue:
+					case ConfigurationValueType.TopicValue:
+						// TODO: Not implemented yet
+						break;
+				}
 				return true;
 			}
 
@@ -346,14 +406,8 @@ namespace SensHub.Server.Managers
                 }
                 // Process the description of the entry
                 ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)node);
-                ConfigurationValue configValue = new ConfigurationValue(
-                    attributes[NameAttribute],
-                    valueType,
-                    attributes[DefaultAttribute],
-                    description
-                    );
-                values.Add(configValue);
                 // Do type specific configuration
+				List<IObjectDescription> options = null;
                 if (valueType == ConfigurationValueType.OptionList)
                 {
                     // Build a list of individual options
@@ -363,21 +417,29 @@ namespace SensHub.Server.Managers
                         LogHost.Default.Error("Configuration values of type 'OptionList' require options.");
                         return null;
                     }
-                    List<IObjectDescription> options = new List<IObjectDescription>();
+                    options = new List<IObjectDescription>();
                     foreach (XmlNode item in optionNodes)
                         options.Add(ProcessDescription(defaultLang, (XmlElement)item));
-                    configValue.Options = options;
                 }
+				UserObjectType objectType = UserObjectType.None;
                 if ((valueType == ConfigurationValueType.ObjectList) || (valueType == ConfigurationValueType.ObjectValue))
                 {
-                    UserObjectType objectType;
                     if (!Enum.TryParse(node.Attributes.GetNamedItem(SubtypeAttribute).Value, true, out objectType))
                     {
                         LogHost.Default.Error("Fields of type {0} require a valid '{1}' attribute.", valueType, SubtypeAttribute);
                         return null;
                     }
-                    configValue.Subtype = objectType;
                 }
+				// Create and add the value
+				ConfigurationValue configValue = new ConfigurationValue(
+					attributes[NameAttribute],
+					valueType,
+					attributes[DefaultAttribute],
+					description,
+					options,
+					objectType
+					);
+				values.Add(configValue);
 			}
 			return new ConfigurationDescription(values);
 		}
