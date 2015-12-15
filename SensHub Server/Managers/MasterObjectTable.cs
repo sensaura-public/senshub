@@ -407,7 +407,7 @@ namespace SensHub.Server.Managers
 		/// <param name="config"></param>
 		/// <returns></returns>
 		[RpcCall("SetConfiguration", AuthenticationRequired = true)]
-		public List<string> RpcSetConfiguration(string id, IDictionary<string, object> config)
+		public IDictionary<string, string> RpcSetConfiguration(string id, IDictionary<string, object> config)
 		{
 			// Make sure the object ID is valid
 			Guid uuid;
@@ -424,14 +424,15 @@ namespace SensHub.Server.Managers
 			if (desc == null)
 				throw new ArgumentException("No configuration description available for object.");
 			// Verify the configuration
-			List<string> failed = new List<string>();
-			config =  desc.Verify(config, failed);
+			Dictionary<string, string> failures = new Dictionary<string, string>();
+			config =  desc.Verify(config, failures);
 			if (config != null) 
 			{
 				IConfigurable configurable = instance as IConfigurable;
-				configurable.ApplyConfiguration(desc, config);
+				if (configurable.ValidateConfiguration(desc, config, failures))
+					configurable.ApplyConfiguration(desc, config);
 			}
-			return failed;
+			return failures;
 		}
 
 		/// <summary>

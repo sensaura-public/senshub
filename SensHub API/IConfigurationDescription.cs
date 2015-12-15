@@ -20,7 +20,7 @@ namespace SensHub.Plugins
 		/// <param name="values"></param>
 		/// <param name="failed"></param>
 		/// <returns></returns>
-		IDictionary<string, object> Verify(IDictionary<string, object> values, IList<string> failed = null);
+		IDictionary<string, object> Verify(IDictionary<string, object> values, IDictionary<string, string> failures = null);
 
 		/// <summary>
 		/// Get the value applied to the named property.
