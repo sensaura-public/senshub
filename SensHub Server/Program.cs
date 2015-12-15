@@ -109,10 +109,11 @@ namespace SensHub.Server
 			string webSite = options.WebDirectory;
 			if (webSite == null)
 			{
-				FileSystem sitePath = (FileSystem)fs.OpenFolder("site");
+				FileSystem sitePath = (FileSystem)fs.OpenFolder(FileSystem.SiteFolder);
 				webSite = sitePath.BasePath;
 			}
-            HttpServer httpServer = new HttpServer(webSite);
+			int httpPort = (int)serverConfigDescription.GetAppliedValue(serverConfig, "httpPort");
+            HttpServer httpServer = new HttpServer(webSite, httpPort);
             Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();

@@ -23,6 +23,9 @@ namespace SensHub.Server.Http
         // The directory containing the site
         private string m_sitePath;
 
+		// The port to listen on
+		private int m_port;
+
         // The actual listener
         private HttpListener m_listener;
 
@@ -35,8 +38,9 @@ namespace SensHub.Server.Http
         // RPC call manager
         private RpcRequestHandler m_rpcHandler;
 
-        public HttpServer(string sitePath)
+        public HttpServer(string sitePath, int port)
         {
+			m_port = port;
             m_sitePath = sitePath;
             m_sessions = new Dictionary<Guid, HttpSession>();
             m_handlers = new Dictionary<string, HttpRequestHandler>();
@@ -223,10 +227,8 @@ namespace SensHub.Server.Http
         {
             // Set up the listener
             m_listener = new HttpListener();
-			// TODO: Reimplement this correctly
-            //Configuration serverConfig = Locator.Current.GetService<Configuration>();
-            //string prefix = "http://*:" + serverConfig["httpPort"].ToString() + "/";
-			string prefix = "http://*:8000/";
+			// Get the configured port
+			string prefix = string.Format("http://*:{0}/", m_port);
             this.Log().Debug("Server listening on {0}", prefix);
             m_listener.Prefixes.Add(prefix);
             m_listener.Start();
