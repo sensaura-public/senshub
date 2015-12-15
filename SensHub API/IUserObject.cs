@@ -11,6 +11,7 @@ namespace SensHub.Plugins
     /// </summary>
     public enum UserObjectType
     {
+		None,
 		Server,
         Plugin,
         Trigger,

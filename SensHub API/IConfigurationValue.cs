@@ -43,12 +43,12 @@ namespace SensHub.Plugins
 		/// <summary>
 		/// The list of options if for OptionList types
 		/// </summary>
-		List<IObjectDescription> Options { get; set; }
+		List<IObjectDescription> Options { get; }
 
 		/// <summary>
 		/// The type of user objects supported for ObjectValue and ObjectList types
 		/// </summary>
-		UserObjectType Subtype { get; set; }
+		UserObjectType Subtype { get; }
 
 		/// <summary>
 		/// Validate a value for this field.
