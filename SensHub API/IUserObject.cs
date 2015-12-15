@@ -89,8 +89,9 @@ namespace SensHub.Plugins
         /// Create or reinstate an object given an ID and a configuration.
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="config"></param>
+        /// <param name="description"></param>
+		/// <param name="values"></param>
         /// <returns></returns>
-        T CreateInstance(Guid id, Configuration config);
+        T CreateInstance(Guid id, IConfigurationDescription description, IDictionary<string, object> values);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SensHub.Plugins
 {
@@ -17,9 +18,15 @@ namespace SensHub.Plugins
         #endregion
 
         #region IConfigurable
-        public abstract void ApplyConfiguration(Configuration configuration);
-        #endregion
-    }
+		public virtual bool ValidateConfiguration(IConfigurationDescription description, System.Collections.Generic.IDictionary<string, object> values, System.Collections.Generic.IDictionary<string, string> failures)
+		{
+			// Default is to do nothing
+			return true;
+		}
+
+		public abstract void ApplyConfiguration(IConfigurationDescription description, System.Collections.Generic.IDictionary<string, object> values);
+		#endregion
+	}
 
     /// <summary>
     /// Factory class for Source objects
@@ -35,7 +42,16 @@ namespace SensHub.Plugins
 
         public abstract Guid UUID { get; }
 
-        public abstract void ApplyConfiguration(Configuration configuration);
-        public abstract AbstractSource CreateInstance(Guid id, Configuration config);
+		#region IConfigurable
+		public virtual bool ValidateConfiguration(IConfigurationDescription description, System.Collections.Generic.IDictionary<string, object> values, System.Collections.Generic.IDictionary<string, string> failures)
+		{
+			// Default is to do nothing
+			return true;
+		}
+
+		public abstract void ApplyConfiguration(IConfigurationDescription description, System.Collections.Generic.IDictionary<string, object> values);
+		#endregion
+		
+		public abstract AbstractSource CreateInstance(Guid id, IConfigurationDescription description, IDictionary<string, object> values);
     }
 }
