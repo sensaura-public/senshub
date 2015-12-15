@@ -55,7 +55,7 @@ namespace SensHub.Server
 					m_targets = new Dictionary<LogLevel, LogTarget>();
 				// Set up the targets
 				FileSystem fs = Locator.Current.GetService<FileSystem>();
-				fs = (FileSystem)fs.OpenFolder("logs");
+				fs = (FileSystem)fs.OpenFolder(FileSystem.LogFolder);
 				string logFile = Path.Combine(fs.BasePath, String.Format("senshub-{0:yyyy-MM-dd}.log", DateTime.Now));
 				StreamWriter output = new StreamWriter(File.Open(logFile, FileMode.Append, FileAccess.Write, FileShare.Read));
 				IMessageBus messageBus = Locator.Current.GetService<IMessageBus>();

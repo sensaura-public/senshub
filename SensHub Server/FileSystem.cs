@@ -18,6 +18,7 @@ namespace SensHub.Server
 		public const string DataFolder = "data";
 		public const string PluginFolder = "plugins";
 		public const string SiteFolder = "site";
+		public const string LogFolder = "logs";
 
 		// Base path and custom locations
 		private string m_path;

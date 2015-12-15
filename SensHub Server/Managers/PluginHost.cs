@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SensHub.Server;
 using SensHub.Plugins;
 using Splat;
 
@@ -41,9 +42,20 @@ namespace SensHub.Server.Managers
 			get { return CultureInfo.CurrentCulture; }
 		}
 
-		public IFolder FileSystem
+		public IFolder Datastore
 		{
-			get { return m_data; }
+			get 
+			{
+				lock (this)
+				{
+					if (m_data == null)
+					{
+						FileSystem fs = Locator.Current.GetService<FileSystem>();
+						m_data = fs.OpenFolder(FileSystem.DataFolder).OpenFolder(m_plugin.UUID.ToString());
+					}
+				}
+				return m_data; 
+			}
 		}
 
 		public ITopic Parent
@@ -104,18 +116,6 @@ namespace SensHub.Server.Managers
 		public bool EnablePlugin()
 		{
 			bool initialised = false;
-			// Set up the data directory for the plugin
-			FileSystem fs = Locator.Current.GetService<FileSystem>();
-			fs = fs.OpenFolder("data") as FileSystem;
-			try
-			{
-				m_data = fs.OpenFolder(m_plugin.UUID.ToString());
-			}
-			catch (Exception ex)
-			{
-				this.Log().Error("Unable to create data directory for plugin {0}", m_plugin.UUID.ToString());
-				return false;
-			}
 			try
 			{
 				initialised = m_plugin.Initialise(this);
