@@ -43,7 +43,7 @@ namespace SensHub.Plugins
 		/// own data directory. This property provides a <see cref="IFolder"/>
 		/// instance that enforces that.
 		/// </summary>
-		IFolder FileSystem { get; }
+		IFolder Datastore { get; }
 
 		bool RegisterActionFactory(AbstractActionFactory factory);
 
