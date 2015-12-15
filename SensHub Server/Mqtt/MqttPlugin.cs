@@ -194,20 +194,27 @@ namespace SensHub.Server.Mqtt
 		#endregion
 
 		#region Implementation of IConfigurable
-		public void ApplyConfiguration(Configuration configuration)
+		public bool ValidateConfiguration(IConfigurationDescription description, IDictionary<string, object> values, IDictionary<string, string> failures)
+		{
+			// TODO: Implement this
+			return true;
+		}
+
+		public void ApplyConfiguration(IConfigurationDescription description, IDictionary<string, object> values)
 		{
 			// Make sure we have an identity string
-			if (configuration[IdentityKey].ToString() == "")
+			if (values[IdentityKey].ToString() == "")
 			{
-				configuration[IdentityKey] = Guid.NewGuid().ToString();
-				configuration.Save();
+				values[IdentityKey] = Guid.NewGuid().ToString();
+				// TODO: Save the changes
+				//configuration.Save();
 			}
 			// Make sure we are in the disconnected state
 			SetState(ServiceState.Disconnected);
 			// Get our configuration information
-			m_server = configuration[ServerKey].ToString();
-			m_mqttTopic = configuration[TopicKey].ToString();
-			m_identity = configuration[IdentityKey].ToString();
+			m_server = values[ServerKey].ToString();
+			m_mqttTopic = values[TopicKey].ToString();
+			m_identity = values[IdentityKey].ToString();
 			this.Log().Debug("MQTT Connection Configuration - server = '{0}', mqttTopic = '{1}', identity = '{2}'",
 				m_server,
 				m_mqttTopic,
@@ -236,6 +243,5 @@ namespace SensHub.Server.Mqtt
 			throw new NotImplementedException();
 		}
 		#endregion
-
 	}
 }

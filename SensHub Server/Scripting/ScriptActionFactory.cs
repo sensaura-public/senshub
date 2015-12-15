@@ -16,15 +16,15 @@ namespace SensHub.Server.Scripting
 			get { return MyUUID; }
 		}
 
-		public override void ApplyConfiguration(Configuration configuration)
+		public override void ApplyConfiguration(IConfigurationDescription description, IDictionary<string, object> values)
 		{
 			throw new NotImplementedException();
 		}
 
-		public override AbstractAction CreateInstance(Guid id, Configuration config)
+		public override AbstractAction CreateInstance(Guid id, IConfigurationDescription description, IDictionary<string, object> values)
 		{
 			ScriptAction action = new ScriptAction(id);
-			action.ApplyConfiguration(config);
+			action.ApplyConfiguration(description, values);
 			return action;
 		}
 	}

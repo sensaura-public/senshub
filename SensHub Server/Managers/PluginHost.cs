@@ -136,11 +136,11 @@ namespace SensHub.Server.Managers
 				IConfigurable configurable = m_plugin as IConfigurable;
 				if (configurable != null)
 				{
-					ObjectConfiguration description = mot.GetConfigurationDescription(m_plugin.UUID);
-					ConfigurationImpl configuration = (ConfigurationImpl)mot.GetConfiguration(m_plugin.UUID);
+					IConfigurationDescription description = mot.GetConfigurationDescription(m_plugin.UUID);
+					IDictionary<string, object> values = mot.GetConfiguration(m_plugin.UUID);
 					try
 					{
-						configurable.ApplyConfiguration(configuration);
+						configurable.ApplyConfiguration(description, values);
 					}
 					catch (Exception ex)
 					{

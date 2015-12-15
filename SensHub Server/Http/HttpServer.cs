@@ -223,8 +223,10 @@ namespace SensHub.Server.Http
         {
             // Set up the listener
             m_listener = new HttpListener();
-            Configuration serverConfig = Locator.Current.GetService<Configuration>();
-            string prefix = "http://*:" + serverConfig["httpPort"].ToString() + "/";
+			// TODO: Reimplement this correctly
+            //Configuration serverConfig = Locator.Current.GetService<Configuration>();
+            //string prefix = "http://*:" + serverConfig["httpPort"].ToString() + "/";
+			string prefix = "http://*:8000/";
             this.Log().Debug("Server listening on {0}", prefix);
             m_listener.Prefixes.Add(prefix);
             m_listener.Start();

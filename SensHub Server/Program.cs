@@ -30,7 +30,13 @@ namespace SensHub.Server
 		#endregion
 
 		#region Implementation of IConfigurable
-		public void ApplyConfiguration(Configuration configuration)
+		public bool ValidateConfiguration(IConfigurationDescription description, IDictionary<string, object> values, IDictionary<string, string> failures)
+		{
+			// TODO: Implement this
+			return true;
+		}
+
+		public void ApplyConfiguration(IConfigurationDescription description, IDictionary<string, object> values)
 		{
 			throw new NotImplementedException();
 		}
@@ -92,11 +98,12 @@ namespace SensHub.Server
 			Program server = new Program();
 			mot.AddInstance(server);
             // Load the server configuration and make it globally available
-            ConfigurationImpl serverConfig = ConfigurationImpl.Load(
-                "SensHub.json",
-                mot.GetConfigurationDescription(server.UUID)
-                );
-            Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
+// TODO: Reimplement this
+//            ConfigurationImpl serverConfig = ConfigurationImpl.Load(
+//                "SensHub.json",
+//                mot.GetConfigurationDescription(server.UUID)
+//                );
+//            Locator.CurrentMutable.RegisterConstant(serverConfig, typeof(Configuration));
             // Initialise logging now we have a server configuration
 			logger.Enable();
             // Set up the  HttpServer
@@ -129,6 +136,5 @@ namespace SensHub.Server
 			plugins.ShutdownPlugins();
             httpServer.Stop();
         }
-
 	}
 }

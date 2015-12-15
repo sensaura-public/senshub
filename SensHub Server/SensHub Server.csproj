@@ -58,7 +58,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Http\WebHookPlugin.cs" />
-    <Compile Include="Managers\ConfigurationImpl.cs" />
     <Compile Include="FileSystem.cs" />
     <Compile Include="Http\HttpRequestHandler.cs" />
     <Compile Include="Http\HttpServer.cs" />

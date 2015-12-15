@@ -27,7 +27,7 @@ namespace SensHub.Server.Scripting
 			get { return m_uuid; }
 		}
 
-		public override void ApplyConfiguration(Configuration configuration)
+		public override void ApplyConfiguration(IConfigurationDescription description, IDictionary<string, object> values)
 		{
 			throw new NotImplementedException();
 		}

@@ -52,10 +52,11 @@ namespace SensHub.Server
 				else
 					m_targets = new Dictionary<LogLevel, LogTarget>();
 				// Get the log level from the server configuration
-				LogLevel logLevel;
-				Configuration serverConfig = Locator.Current.GetService<Configuration>();
-				if (!Enum.TryParse<LogLevel>(serverConfig["logLevel"].ToString(), out logLevel))
-					logLevel = LogLevel.Warn;
+				LogLevel logLevel = LogLevel.Warn;
+// TODO: Reimplement this
+//				Configuration serverConfig = Locator.Current.GetService<Configuration>();
+//				if (!Enum.TryParse<LogLevel>(serverConfig["logLevel"].ToString(), out logLevel))
+//					logLevel = LogLevel.Warn;
 				Level = logLevel;
 				// Set up the targets
 				FileSystem fs = Locator.Current.GetService<FileSystem>();

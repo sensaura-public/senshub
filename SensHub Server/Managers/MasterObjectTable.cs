@@ -26,7 +26,7 @@ namespace SensHub.Server.Managers
 		//--- Instance variables
 		private Dictionary<Guid, IUserObject> m_instances;
 		private Dictionary<string, IObjectDescription> m_descriptions = new Dictionary<string, IObjectDescription>();
-		private Dictionary<string, ObjectConfiguration> m_configinfo = new Dictionary<string, ObjectConfiguration>();
+		private Dictionary<string, IConfigurationDescription> m_configinfo = new Dictionary<string, IConfigurationDescription>();
 
         public List<Assembly> Assemblies { get; private set; }
 
@@ -37,7 +37,7 @@ namespace SensHub.Server.Managers
         {
 			m_instances = new Dictionary<Guid, IUserObject>();
 			m_descriptions = new Dictionary<string, IObjectDescription>();
-			m_configinfo = new Dictionary<string, ObjectConfiguration>();
+			m_configinfo = new Dictionary<string, IConfigurationDescription>();
             Assemblies = new List<Assembly>();
         }
 
@@ -156,7 +156,7 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		/// <param name="clsName"></param>
 		/// <param name="configuration"></param>
-		public void AddConfigurationDescription(string clsName, ObjectConfiguration configuration)
+		public void AddConfigurationDescription(string clsName, IConfigurationDescription configuration)
 		{
 			lock (m_configinfo)
 			{
@@ -252,7 +252,7 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		/// <param name="forInstance"></param>
 		/// <returns></returns>
-		public Configuration GetConfiguration(Guid forInstance)
+		public IDictionary<string, object> GetConfiguration(Guid forInstance)
 		{
 			IUserObject instance = GetInstance(forInstance);
 			if (instance == null)
@@ -266,12 +266,13 @@ namespace SensHub.Server.Managers
 				this.Log().Warn("Requested configuration for unconfigurable object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
 				return null;
 			}
-			ObjectConfiguration configuration = GetConfigurationDescription(forInstance);
+			IConfigurationDescription configuration = GetConfigurationDescription(forInstance);
 			if (configuration == null) {
 				this.Log().Warn("No configuration description for object '{0}' (Class {1}.{2})", forInstance, instance.GetType().Namespace, instance.GetType().Name);
 				return null;
 			}
-			return ConfigurationImpl.Load(forInstance.ToString() + ".json", configuration);
+			// TODO: Implement this
+			return null;
 		}
 
 		/// <summary>
@@ -279,7 +280,7 @@ namespace SensHub.Server.Managers
 		/// </summary>
 		/// <param name="forInstance"></param>
 		/// <returns></returns>
-		public ObjectConfiguration GetConfigurationDescription(Guid forInstance)
+		public IConfigurationDescription GetConfigurationDescription(Guid forInstance)
 		{
 			IUserObject instance = GetInstance(forInstance);
 			if (instance == null)
@@ -324,15 +325,15 @@ namespace SensHub.Server.Managers
 			IUserObject instance = GetInstance(Guid.Parse(id));
 			if (instance == null)
 				throw new ArgumentException("No such object.");
-			Configuration config = GetConfiguration(instance.UUID);
+			IDictionary<string, object> config = GetConfiguration(instance.UUID);
 			if (config == null)
 				throw new ArgumentException("Object does not have a configuration.");
 			// Set up the result
 			Dictionary<string, object> result = new Dictionary<string, object>();
-			result["active"] = config.Pack();
-            ObjectConfiguration configDescription = GetConfigurationDescription(instance.UUID);
+			result["active"] = config;
+            IConfigurationDescription configDescription = GetConfigurationDescription(instance.UUID);
             List<IDictionary<string, object>> details = new List<IDictionary<string, object>>();
-            foreach (ConfigurationValue value in configDescription)
+            foreach (IConfigurationValue value in configDescription)
                 details.Add(value.Pack());
 			result["details"] = details;
 			return result;
@@ -358,16 +359,16 @@ namespace SensHub.Server.Managers
 			if (instance.ObjectType.IsFactory() || !typeof(IConfigurable).IsAssignableFrom(instance.GetType()))
 				throw new ArgumentException("Cannot apply configuration to this type of object.");
 			// Get the matching configuration description
-			ObjectConfiguration desc = GetConfigurationDescription(uuid);
+			IConfigurationDescription desc = GetConfigurationDescription(uuid);
 			if (desc == null)
 				throw new ArgumentException("No configuration description available for object.");
 			// Verify the configuration
 			List<string> failed = new List<string>();
-			config = desc.Verify(config, failed);
+			config =  desc.Verify(config, failed);
 			if (config != null) 
 			{
 				IConfigurable configurable = instance as IConfigurable;
-				configurable.ApplyConfiguration(ConfigurationImpl.Create(desc, config));
+				configurable.ApplyConfiguration(desc, config);
 			}
 			return failed;
 		}

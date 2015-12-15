@@ -269,14 +269,16 @@ namespace SensHub.Server.Http
         public bool Authenticate(string password)
         {
 			HttpSession session = Thread.GetData(Thread.GetNamedDataSlot("Session")) as HttpSession;
-            Configuration serverConfig = Locator.Current.GetService<Configuration>();
-            string systemPassword = serverConfig["password"].ToString();
-            if (password == systemPassword)
-            {
-                session.Authenticated = true;
-                return true;
-            }
-            return false;
+			// TODO: Reimplement this correctly
+            //Configuration serverConfig = Locator.Current.GetService<Configuration>();
+            //string systemPassword = serverConfig["password"].ToString();
+            //if (password == systemPassword)
+            //{
+            //    session.Authenticated = true;
+            //    return true;
+            //}
+			session.Authenticated = true;
+            return true;
         }
 
         /// <summary>

@@ -71,6 +71,163 @@ namespace SensHub.Server.Managers
 		}
 
 		/// <summary>
+		/// Implementation of IConfigurationValue
+		/// </summary>
+		private class ConfigurationValue : IConfigurationValue
+		{
+			#region Implementation of IConfigurationValue
+			public string Icon { get; set; }
+
+			public string DisplayName { get; private set; }
+
+			public string Description { get; private set; }
+
+			public string DetailedDescription { get; set; }
+
+			public ConfigurationValueType Type { get; private set; }
+
+			public object DefaultValue { get; private set; }
+
+			public List<IObjectDescription> Options { get; set; }
+
+			public UserObjectType Subtype { get; set; }
+			#endregion
+
+			public ConfigurationValue(string name, ConfigurationValueType type, object defaultValue, IObjectDescription description)
+			{
+				DisplayName = name;
+				Type = type;
+				Description = description.Description;
+				DetailedDescription = description.DetailedDescription;
+				DefaultValue = defaultValue;
+			}
+
+			/// <summary>
+			/// Validate a value for this field.
+			/// </summary>
+			/// <param name="value">The value to validate</param>
+			/// <param name="adjusted">The adjust value to store in the confguration</param>
+			/// <returns></returns>
+			public bool Validate(object value, out object adjusted)
+			{
+				// TODO: More complete implementation for different types
+				adjusted = value;
+				return true;
+			}
+
+			/// <summary>
+			/// Pack the configuration for transport
+			/// </summary>
+			/// <returns></returns>
+			public IDictionary<string, object> Pack()
+			{
+				Dictionary<string, object> results = new Dictionary<string, object>();
+				results["DisplayName"] = DisplayName;
+				results["Icon"] = Icon;
+				results["Description"] = Description;
+				results["DetailedDescription"] = DetailedDescription;
+				results["ValueType"] = Type.ToString();
+				results["SubType"] = Subtype.ToString();
+				if (Options != null)
+				{
+					List<IDictionary<string, object>> options = new List<IDictionary<string, object>>();
+					foreach (IObjectDescription description in Options)
+						options.Add(description.Pack());
+					results["Options"] = options;
+				}
+				results["DefaultValue"] = DefaultValue;
+				return results;
+			}
+		}
+		/// <summary>
+		/// Implementation of IConfigurationDescription
+		/// </summary>
+		private class ConfigurationDescription : IConfigurationDescription
+		{
+			// Instance variables
+			private List<IConfigurationValue> m_configuration;
+
+			/// <summary>
+			/// Constructor from a list of configuration values
+			/// </summary>
+			/// <param name="description"></param>
+			public ConfigurationDescription(List<IConfigurationValue> description)
+			{
+				m_configuration = description;
+			}
+
+			/// <summary>
+			/// Constructor from an array of configuration values
+			/// </summary>
+			/// <param name="description"></param>
+			public ConfigurationDescription(IConfigurationValue[] description)
+			{
+				m_configuration = new List<IConfigurationValue>(description);
+			}
+
+			/// <summary>
+			/// Verify a set of data for the configuration
+			/// </summary>
+			/// <param name="values"></param>
+			/// <param name="failed"></param>
+			/// <returns></returns>
+			public IDictionary<string, object> Verify(IDictionary<string, object> values, IList<string> failed = null)
+			{
+				bool success = true;
+				Dictionary<string, object> result = new Dictionary<string, object>();
+				foreach (IConfigurationValue value in m_configuration)
+				{
+					object source;
+					if (values.ContainsKey(value.DisplayName))
+						source = values[value.DisplayName];
+					else
+						source = value.DefaultValue;
+					// Validate the value according to type
+
+					try
+					{
+						object adjusted;
+						source = (value.Validate(source, out adjusted)) ? adjusted : null;
+					}
+					catch (Exception) {
+						source = null;
+					}
+					if (source == null) 
+					{
+						success = true;
+						if (failed != null)
+							failed.Add(value.DisplayName);
+					}
+					else
+						result[value.DisplayName] = source;
+				}
+				return success?result:null;
+			}
+
+			#region Implementation of IReadOnlyList
+			public IConfigurationValue this[int index]
+			{
+				get { return ((IReadOnlyList<IConfigurationValue>)m_configuration)[index]; }
+			}
+
+			public int Count
+			{
+				get { return ((IReadOnlyList<IConfigurationValue>)m_configuration).Count; }
+			}
+
+			public IEnumerator<IConfigurationValue> GetEnumerator()
+			{
+				return ((IReadOnlyList<IConfigurationValue>)m_configuration).GetEnumerator();
+			}
+
+			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+			{
+				return ((IEnumerable<IConfigurationValue>)m_configuration).GetEnumerator();
+			}
+			#endregion
+		}
+
+		/// <summary>
 		/// Load metadata from a stream.
 		/// </summary>
 		/// <param name="baseName"></param>
@@ -98,8 +255,8 @@ namespace SensHub.Server.Managers
 			XmlNode attr = document.DocumentElement.Attributes.GetNamedItem(DefaultLangAttribute);
 			if (attr != null)
 				defaultLanguage = attr.Value;
-            // Find all the classes
-            foreach (XmlNode node in document.DocumentElement.SelectNodes(String.Format("{0}[@{1}]", ClassTag, NameAttribute)))
+			// Find all the classes
+			foreach (XmlNode node in document.DocumentElement.SelectNodes(String.Format("{0}[@{1}]", ClassTag, NameAttribute)))
 			{
 				attr = node.Attributes.GetNamedItem(NameAttribute);
 				string className = baseName + "." + attr.Value;
@@ -134,9 +291,9 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		private static ObjectConfiguration ProcessConfiguration(string defaultLang, XmlElement parent)
+		private static IConfigurationDescription ProcessConfiguration(string defaultLang, XmlElement parent)
 		{
-            List<ConfigurationValue> values = new List<ConfigurationValue>();
+            List<IConfigurationValue> values = new List<IConfigurationValue>();
             XmlNodeList nodes = parent.SelectNodes(String.Format("{0}[@{1} and @{2} and @{3}]", ValueTag, NameAttribute, TypeAttribute, DefaultAttribute));
             foreach (XmlNode node in nodes)
             {
@@ -147,7 +304,7 @@ namespace SensHub.Server.Managers
                 attributes[DefaultAttribute] = node.Attributes.GetNamedItem(DefaultAttribute).Value;
                 LogHost.Default.Debug("Adding configuration entry '{0}' ({1})", attributes[NameAttribute], attributes[TypeAttribute]);
                 // Verify the type
-                ConfigurationValue.ValueType valueType;
+                ConfigurationValueType valueType;
                 if (!Enum.TryParse(attributes[TypeAttribute], false, out valueType))
                 {
                     LogHost.Default.Warn("Unrecognised configuration type '{0}'", attributes[TypeAttribute]);
@@ -163,7 +320,7 @@ namespace SensHub.Server.Managers
                     );
                 values.Add(configValue);
                 // Do type specific configuration
-                if (valueType == ConfigurationValue.ValueType.OptionList)
+                if (valueType == ConfigurationValueType.OptionList)
                 {
                     // Build a list of individual options
                     XmlNodeList optionNodes = node.SelectNodes(string.Format("{0}[@{1}]", SelectionTag, NameAttribute));
@@ -177,7 +334,7 @@ namespace SensHub.Server.Managers
                         options.Add(ProcessDescription(defaultLang, (XmlElement)item));
                     configValue.Options = options;
                 }
-                if ((valueType == ConfigurationValue.ValueType.ObjectList) || (valueType == ConfigurationValue.ValueType.ObjectValue))
+                if ((valueType == ConfigurationValueType.ObjectList) || (valueType == ConfigurationValueType.ObjectValue))
                 {
                     UserObjectType objectType;
                     if (!Enum.TryParse(node.Attributes.GetNamedItem(SubtypeAttribute).Value, true, out objectType))
@@ -188,7 +345,7 @@ namespace SensHub.Server.Managers
                     configValue.Subtype = objectType;
                 }
 			}
-			return new ObjectConfiguration(values);
+			return new ConfigurationDescription(values);
 		}
 
 		/// <summary>
@@ -243,7 +400,7 @@ namespace SensHub.Server.Managers
             {
                 // Process the configuration
                 LogHost.Default.Debug("Loading configuration definition for class '{0}'", className);
-                ObjectConfiguration config = ProcessConfiguration(defaultLang, (XmlElement)nodes[0]);
+                IConfigurationDescription config = ProcessConfiguration(defaultLang, (XmlElement)nodes[0]);
                 if (config != null)
                     mot.AddConfigurationDescription(className, config);
             }
