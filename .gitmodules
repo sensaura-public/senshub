@@ -1,0 +1,3 @@
+[submodule "iotweb"]
+	path = iotweb
+	url = ../iotweb.git
