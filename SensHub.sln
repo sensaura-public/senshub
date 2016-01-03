@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotWeb Portable", "..\iotwe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IotWeb NET45", "..\iotweb\IotWeb NET45\IotWeb NET45.csproj", "{33F56077-18E3-414D-BCC1-496790AAEA93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SensHub Core", "SensHub Core\SensHub Core.csproj", "{64E7EA6C-A996-4DAC-BA1A-7823B6667B3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{33F56077-18E3-414D-BCC1-496790AAEA93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33F56077-18E3-414D-BCC1-496790AAEA93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33F56077-18E3-414D-BCC1-496790AAEA93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64E7EA6C-A996-4DAC-BA1A-7823B6667B3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64E7EA6C-A996-4DAC-BA1A-7823B6667B3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64E7EA6C-A996-4DAC-BA1A-7823B6667B3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64E7EA6C-A996-4DAC-BA1A-7823B6667B3E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
