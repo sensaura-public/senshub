@@ -68,14 +68,10 @@
     <Compile Include="Http\RpcRequestHandler.cs" />
     <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="Http\WebSocketRequestHandler.cs" />
-    <Compile Include="JsonParser.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Managers\MasterObjectTable.cs" />
-    <Compile Include="Managers\MetadataParser.cs" />
     <Compile Include="Mqtt\MessageBus.cs" />
     <Compile Include="Mqtt\MqttPlugin.cs" />
     <Compile Include="Mqtt\Topic.cs" />
-    <Compile Include="ObjectPacker.cs" />
     <Compile Include="Managers\PluginHost.cs" />
     <Compile Include="Managers\PluginManager.cs" />
     <Compile Include="Program.cs" />
@@ -111,6 +107,10 @@
     <ProjectReference Include="..\SensHub API\SensHub API.csproj">
       <Project>{92d8ec14-fd7b-4328-9798-1397e4810775}</Project>
       <Name>SensHub API</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SensHub Core\SensHub Core.csproj">
+      <Project>{64e7ea6c-a996-4dac-ba1a-7823b6667b3e}</Project>
+      <Name>SensHub Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

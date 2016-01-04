@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using SensHub.Plugins;
 using Splat;
 
-namespace SensHub.Server
+namespace SensHub.Core.Utils
 {
 	/// <summary>
 	/// Provides static helper methods to pack/unpack objects in JSON
 	/// format.
 	/// </summary>
-	internal class ObjectPacker
+	public class ObjectPacker
 	{
 		/// <summary>
 		/// Uses DynamicObject to create a generic packable object from data.
@@ -145,7 +145,7 @@ namespace SensHub.Server
         {
             StreamReader reader = new StreamReader(jsonFile);
             IDictionary<string, object> result = UnpackRaw(reader.ReadToEnd());
-            jsonFile.Close();
+            jsonFile.Dispose();
             return result;
         }
 
@@ -203,7 +203,7 @@ namespace SensHub.Server
         {
             StreamReader reader = new StreamReader(jsonFile);
             IPackable result = Unpack(reader.ReadToEnd());
-            jsonFile.Close();
+            jsonFile.Dispose();
             return result;
         }
 
@@ -243,7 +243,7 @@ namespace SensHub.Server
         {
             StreamReader reader = new StreamReader(jsonFile);
             T result = Unpack<T>(reader.ReadToEnd());
-            jsonFile.Close();
+            jsonFile.Dispose();
             return result;
         }
     }

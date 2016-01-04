@@ -7,11 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SensHub.Plugins;
-using SensHub.Server;
-using SensHub.Server.Http;
+using SensHub.Core.Utils;
 using Splat;
 
-namespace SensHub.Server.Managers
+namespace SensHub.Core.Plugins
 {
     /// <summary>
     /// This class manages all the IUserObject instances in the system
@@ -40,8 +39,8 @@ namespace SensHub.Server.Managers
 			m_configinfo = new Dictionary<string, IConfigurationDescription>();
             Assemblies = new List<Assembly>();
 			// Get the containing folder for configurations
-			FileSystem fs = Locator.Current.GetService<FileSystem>();
-			m_configDirectory = fs.OpenFolder(FileSystem.DataFolder);
+			IFolder fs = Locator.Current.GetService<IFolder>();
+			m_configDirectory = fs.OpenFolder(ServerConstants.DataFolder);
         }
 
         /// <summary>
@@ -112,7 +111,7 @@ namespace SensHub.Server.Managers
 		/// Add an object instance to the master table
 		/// </summary>
 		/// <param name="instance"></param>
-		internal bool AddInstance(IUserObject instance)
+		public bool AddInstance(IUserObject instance)
 		{
 			lock (m_instances)
 			{
@@ -153,7 +152,7 @@ namespace SensHub.Server.Managers
 		/// Remove an instance from the master table.
 		/// </summary>
 		/// <param name="uuid"></param>
-		internal bool RemoveInstance(Guid uuid)
+		public bool RemoveInstance(Guid uuid)
 		{
 			lock (m_instances)
 			{
@@ -208,7 +207,7 @@ namespace SensHub.Server.Managers
 		/// from an assembly.
 		/// </summary>
 		/// <param name="assembly"></param>
-		internal void AddMetaData(Assembly assembly)
+		public void AddMetaData(Assembly assembly)
 		{
             Assemblies.Add(assembly);
 			Stream source = assembly.GetManifestResourceStream(assembly.GetName().Name + ".Resources.metadata.xml");
@@ -229,7 +228,7 @@ namespace SensHub.Server.Managers
 		/// <param name="forInstance"></param>
 		/// <param name="filename"></param>
 		/// <returns></returns>
-		internal IDictionary<string, object> GetConfigurationFromFile(Guid forInstance, string filename)
+		public IDictionary<string, object> GetConfigurationFromFile(Guid forInstance, string filename)
 		{
 			IUserObject instance;
 			IConfigurationDescription description;
@@ -239,9 +238,9 @@ namespace SensHub.Server.Managers
 			IDictionary<string, object> values = null;
 			if (m_configDirectory.FileExists(filename)) 
 			{
-				Stream json = File.Open(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename), FileMode.Open, FileAccess.Read);
+				Stream json = m_configDirectory.CreateFile(filename, FileAccessMode.Read, CreationOptions.OpenIfExists);
 				values = ObjectPacker.UnpackRaw(json);
-				json.Close();
+				json.Dispose();
 			}
 			else
 				values = new Dictionary<string, object>();
@@ -274,7 +273,7 @@ namespace SensHub.Server.Managers
 		public T GetInstance<T>(Guid forInstance) where T : IUserObject
 		{
 			IUserObject instance = GetInstance(forInstance);
-			if (typeof(T).IsAssignableFrom(instance.GetType()))
+			if (instance is T)
 				return (T)instance;
 			return default(T);
 		}
@@ -318,22 +317,8 @@ namespace SensHub.Server.Managers
 		/// <returns></returns>
 		public IDictionary<string, object> GetConfiguration(Guid forInstance)
 		{
-			IUserObject instance;
-			IConfigurationDescription description;
-			if (!GetObjectInformation(forInstance, out instance, out description))
-				return null;
 			// TODO: Currently loading from file, should be stored in DB
-			IDictionary<string, object> values = null;
-			string filename = string.Format("{0}.json", forInstance);
-			if (m_configDirectory.FileExists(filename)) 
-			{
-				Stream json = File.Open(Path.Combine(((FileSystem)m_configDirectory).BasePath, filename), FileMode.Open, FileAccess.Read);
-				values = ObjectPacker.UnpackRaw(json);
-				json.Close();
-			}
-			else
-				values = new Dictionary<string, object>();
-			return description.Verify(values);
+			return GetConfigurationFromFile(forInstance, string.Format("{0}.json", forInstance));
 		}
 
 		/// <summary>
@@ -365,6 +350,7 @@ namespace SensHub.Server.Managers
 		#endregion
 
 		#region RPC Interface
+/*
 		/// <summary>
 		/// Get the current system state
 		/// </summary>
@@ -447,6 +433,7 @@ namespace SensHub.Server.Managers
 			// TODO: Implement this
 			throw new NotImplementedException("This method is not yet implemented.");
 		}
+*/ 
 		#endregion
 
 	}

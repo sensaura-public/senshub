@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using SensHub.Plugins;
+using SensHub.Core.Plugins;
 using SensHub.Server.Http;
 using SensHub.Server.Mqtt;
 using SensHub.Server.Scripting;
@@ -86,7 +87,7 @@ namespace SensHub.Server
 			}
 			// Make it globally available.
 			FileSystem fs = new FileSystem(options.StorageDirectory);
-			Locator.CurrentMutable.RegisterConstant(fs, typeof(FileSystem));
+			Locator.CurrentMutable.RegisterConstant(fs, typeof(IFolder));
 			// Set up the MessageBus
 			MessageBus messageBus = new MessageBus();
 			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));

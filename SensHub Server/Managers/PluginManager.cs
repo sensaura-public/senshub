@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SensHub.Plugins;
+using SensHub.Core.Plugins;
 using Splat;
 
 namespace SensHub.Server.Managers

@@ -9,7 +9,7 @@ using System.Text;
 
 // This code taken from https://github.com/danielcrenna/json, a project by
 // Daniel Crenna and released to the public domain.
-namespace SensHub.Server
+namespace SensHub.Core.Utils
 {
 
     /// <summary>
@@ -353,10 +353,7 @@ namespace SensHub.Server
                 return;
             }
 
-            var properties = item.GetProperties(
-                BindingFlags.Public | BindingFlags.Instance
-                );
-
+			var properties = item.GetRuntimeProperties().ToArray();
             _cache.Add(item, properties);
         }
 

@@ -1,13 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
+using System.Xml.Linq;
+using System.Linq;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Text;
 using SensHub.Plugins;
 using Splat;
 
-namespace SensHub.Server.Managers
+namespace SensHub.Core.Plugins
 {
 	/// <summary>
 	/// This class is responsible for loading the 'metadata' for plugins and
@@ -329,13 +331,13 @@ namespace SensHub.Server.Managers
 		public static void LoadFromStream(string baseName, Stream input)
 		{
 			LogHost.Default.Debug("Loading metadata for assembly '{0}'", baseName);
-			XmlDocument document = new XmlDocument();
+			XDocument document = null;
 			try
 			{
-				document.Load(input);
-				if (document.DocumentElement.Name != MetadataTag)
+				document = XDocument.Load(input);
+				if (document.Root.Name != MetadataTag)
 				{
-					LogHost.Default.Warn("Unexpected document tag in metadata file for {0} - expected <{1}>, got <{2}>.", baseName, MetadataTag, document.DocumentElement.Name);
+					LogHost.Default.Warn("Unexpected document tag in metadata file for {0} - expected <{1}>, got <{2}>.", baseName, MetadataTag, document.Root.Name);
 					return;
 				}
 			}
@@ -346,16 +348,20 @@ namespace SensHub.Server.Managers
 			}
 			// Get the default language
 			string defaultLanguage = "en";
-			XmlNode attr = document.DocumentElement.Attributes.GetNamedItem(DefaultLangAttribute);
+			XAttribute attr = document.Root.Attribute(DefaultLangAttribute);
 			if (attr != null)
 				defaultLanguage = attr.Value;
 			// Find all the classes
-			foreach (XmlNode node in document.DocumentElement.SelectNodes(String.Format("{0}[@{1}]", ClassTag, NameAttribute)))
+			IEnumerable<XElement> nodes =
+				from node in document.Root.Elements(ClassTag)
+				where node.Attribute(NameAttribute) != null
+				select node;
+			foreach (XElement node in nodes)
 			{
-				attr = node.Attributes.GetNamedItem(NameAttribute);
+				attr = node.Attribute(NameAttribute);
 				string className = baseName + "." + attr.Value;
 				LogHost.Default.Debug("Loading class definition for '{0}'", className);
-				ProcessClass(baseName, baseName + "." + attr.Value, defaultLanguage, (XmlElement)node);
+				ProcessClass(baseName, baseName + "." + attr.Value, defaultLanguage, node);
 			}
 		}
 
@@ -366,15 +372,24 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		private static string GetLocalisedText(string defaultLang, XmlElement element, string textTag = TextTag)
+		private static string GetLocalisedText(string defaultLang, XElement element, string textTag = TextTag)
 		{
-            XmlNodeList nodes = element.SelectNodes(String.Format("{0}[@{1}='{2}']", textTag, LanguageAttribute, CultureInfo.CurrentCulture.Name));
-            if (nodes.Count == 0) // Look for default language instead
-                nodes = element.SelectNodes(String.Format("{0}[@{1}='{2}']", textTag, LanguageAttribute, defaultLang));
-			StringBuilder sb = new StringBuilder("");
-			foreach (XmlElement text in nodes)
+			IEnumerable<XElement> nodes =
+				from node in element.Descendants(textTag)
+				where (string)node.Attribute(LanguageAttribute) == CultureInfo.CurrentCulture.Name
+				select node;
+			if (nodes.Count() == 0)
 			{
-				sb.Append(text.InnerText);
+				// Look for default language instead
+				nodes =
+					from node in element.Descendants(textTag)
+					where (string)node.Attribute(LanguageAttribute) == defaultLang
+					select node;
+			}
+			StringBuilder sb = new StringBuilder("");
+			foreach (XElement text in nodes)
+			{
+				sb.Append(text.Value);
 			}
 			return sb.ToString().Trim();
 		}
@@ -385,17 +400,20 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
 		/// <returns></returns>
-		private static IConfigurationDescription ProcessConfiguration(string defaultLang, XmlElement parent)
+		private static IConfigurationDescription ProcessConfiguration(string defaultLang, XElement parent)
 		{
             List<IConfigurationValue> values = new List<IConfigurationValue>();
-            XmlNodeList nodes = parent.SelectNodes(String.Format("{0}[@{1} and @{2} and @{3}]", ValueTag, NameAttribute, TypeAttribute, DefaultAttribute));
-            foreach (XmlNode node in nodes)
+			IEnumerable<XElement> nodes =
+				from node in parent.Descendants(ValueTag)
+				where (node.Attribute(NameAttribute) != null) && (node.Attribute(TypeAttribute) != null) && (node.Attribute(DefaultAttribute) != null)
+				select node;
+            foreach (XElement node in nodes)
             {
                 // Get required attributes (name, type and default)
                 Dictionary<string, string> attributes = new Dictionary<string, string>();
-                attributes[NameAttribute] = node.Attributes.GetNamedItem(NameAttribute).Value;
-                attributes[TypeAttribute] = node.Attributes.GetNamedItem(TypeAttribute).Value;
-                attributes[DefaultAttribute] = node.Attributes.GetNamedItem(DefaultAttribute).Value;
+                attributes[NameAttribute] = node.Attribute(NameAttribute).Value;
+                attributes[TypeAttribute] = node.Attribute(TypeAttribute).Value;
+                attributes[DefaultAttribute] = node.Attribute(DefaultAttribute).Value;
                 LogHost.Default.Debug("Adding configuration entry '{0}' ({1})", attributes[NameAttribute], attributes[TypeAttribute]);
                 // Verify the type
                 ConfigurationValueType valueType;
@@ -405,26 +423,29 @@ namespace SensHub.Server.Managers
                     continue;
                 }
                 // Process the description of the entry
-                ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)node);
+                ObjectDescription description = ProcessDescription(defaultLang, node);
                 // Do type specific configuration
 				List<IObjectDescription> options = null;
                 if (valueType == ConfigurationValueType.OptionList)
                 {
                     // Build a list of individual options
-                    XmlNodeList optionNodes = node.SelectNodes(string.Format("{0}[@{1}]", SelectionTag, NameAttribute));
-                    if (optionNodes.Count == 0)
+					IEnumerable<XElement> optionNodes =
+						from option in node.Descendants(SelectionTag)
+						where option.Attribute(NameAttribute) != null
+						select option;
+                    if (optionNodes.Count() == 0)
                     {
                         LogHost.Default.Error("Configuration values of type 'OptionList' require options.");
                         return null;
                     }
                     options = new List<IObjectDescription>();
-                    foreach (XmlNode item in optionNodes)
-                        options.Add(ProcessDescription(defaultLang, (XmlElement)item));
+                    foreach (XElement item in optionNodes)
+                        options.Add(ProcessDescription(defaultLang, item));
                 }
 				UserObjectType objectType = UserObjectType.None;
                 if ((valueType == ConfigurationValueType.ObjectList) || (valueType == ConfigurationValueType.ObjectValue))
                 {
-                    if (!Enum.TryParse(node.Attributes.GetNamedItem(SubtypeAttribute).Value, true, out objectType))
+                    if (!Enum.TryParse(node.Attribute(SubtypeAttribute).Value, true, out objectType))
                     {
                         LogHost.Default.Error("Fields of type {0} require a valid '{1}' attribute.", valueType, SubtypeAttribute);
                         return null;
@@ -452,7 +473,7 @@ namespace SensHub.Server.Managers
 		/// <param name="defaultLang"></param>
 		/// <param name="parent"></param>
 		/// <returns></returns>
-		private static ObjectDescription ProcessDescription(string defaultLang, XmlElement parent)
+		private static ObjectDescription ProcessDescription(string defaultLang, XElement parent)
 		{
 			ObjectDescription description = new ObjectDescription();
 			// Get the text first
@@ -460,11 +481,13 @@ namespace SensHub.Server.Managers
 			description.Description = GetLocalisedText(defaultLang, parent, ShortDescriptionTag);
 			description.DetailedDescription = GetLocalisedText(defaultLang, parent, LongDescriptionTag);
             // Handle the icon differently
-            XmlNodeList nodes = parent.SelectNodes(string.Format("{0}[@{1}]", IconTag, ImageAttribute));
-            if (nodes.Count > 0)
+			IEnumerable<XElement> nodes =
+				from node in parent.Descendants(IconTag)
+				where node.Attribute(ImageAttribute) != null
+				select node;
+            if (nodes.Count() > 0)
             {
-                XmlAttribute attr = (XmlAttribute)nodes[0].Attributes.GetNamedItem(ImageAttribute);
-                description.Icon = attr.Value.Trim();
+				description.Icon = nodes.First().Attribute(ImageAttribute).Value.Trim();
             }
             // Done
             return description;
@@ -477,26 +500,31 @@ namespace SensHub.Server.Managers
 		/// <param name="className"></param>
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
-		private static void ProcessClass(string assembly, string className, string defaultLang, XmlElement element)
+		private static void ProcessClass(string assembly, string className, string defaultLang, XElement element)
 		{
 			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
-            // Process the description
-            XmlNodeList nodes = element.SelectNodes(DescriptionTag);
-            if (nodes.Count > 0)
+            // Get the descriptions
+			IEnumerable<XElement> nodes =
+				from node in element.Descendants(DescriptionTag)
+				select node;
+            if (nodes.Count() > 0)
             {
                 // Process the description
                 LogHost.Default.Debug("Loading description definition for class '{0}'", className);
-                ObjectDescription description = ProcessDescription(defaultLang, (XmlElement)nodes[0]);
+                ObjectDescription description = ProcessDescription(defaultLang, nodes.First());
                 if ((description.Icon != null) && (description.Icon.Length > 0))
                     description.Icon = BaseImageUrl + assembly + "." + description.Icon;
                 mot.AddDescription(className, description);
             }
-            nodes = element.SelectNodes(ConfigurationTag);
-            if (nodes.Count > 0)
+			// Get the configurations
+			nodes =
+				from node in element.Descendants(ConfigurationTag)
+				select node;
+			if (nodes.Count() > 0)
             {
                 // Process the configuration
                 LogHost.Default.Debug("Loading configuration definition for class '{0}'", className);
-                IConfigurationDescription config = ProcessConfiguration(defaultLang, (XmlElement)nodes[0]);
+                IConfigurationDescription config = ProcessConfiguration(defaultLang, nodes.First());
                 if (config != null)
                     mot.AddConfigurationDescription(className, config);
             }
