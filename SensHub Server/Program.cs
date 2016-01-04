@@ -7,13 +7,12 @@ using SensHub.Core.Plugins;
 using SensHub.Server.Http;
 using SensHub.Server.Mqtt;
 using SensHub.Server.Scripting;
-using SensHub.Server.Managers;
 using CommandLine;
 using Splat;
 
 namespace SensHub.Server
 {
-	class Program : IUserObject, IConfigurable
+	class Program : IUserObject, IConfigurable, IEnableLogger
 	{
 		private static Guid MyUUID = Guid.Parse("{377ECFA2-2B36-4BBF-8F3F-66C0582DFED8}");
 		private const UserObjectType MyType = UserObjectType.Server;
@@ -70,6 +69,80 @@ namespace SensHub.Server
 			}
 		}
 
+/*
+		/// <summary>
+		/// Populate the plugin list with all plugins found in the specified directory.
+		/// 
+		/// This method does not initialise the plugins, it simply discovers them and
+		/// adds them to master list.
+		/// </summary>
+		/// <param name="directory"></param>
+		public void LoadPlugins(string directory)
+		{
+			this.Log().Debug("Scanning directory '{0}' for plugins.", directory);
+			if (!Directory.Exists(directory))
+			{
+				this.Log().Warn("Plugin directory '{0}' does not exist.", directory);
+				return;
+			}
+			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
+			String[] files = Directory.GetFiles(directory, "*.dll");
+			foreach (string pluginDLL in files)
+			{
+				// Load the assembly
+				Assembly asm = null;
+				try
+				{
+					this.Log().Debug("Attempting to load '{0}'", pluginDLL);
+					asm = Assembly.LoadFile(pluginDLL);
+				}
+				catch (Exception ex)
+				{
+					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.Message);
+					continue;
+				}
+				// Get the plugins defined in the file (it can have more than one)
+				Type[] types = null;
+				try
+				{
+					types = asm.GetTypes();
+				}
+				catch (Exception ex)
+				{
+					// TODO: an exception here indicates a plugin built against a different version
+					//       of the API. Should report it as such.
+					this.Log().Error("Failed to load assembly from file '{0}' - {1}", pluginDLL, ex.Message);
+					continue;
+				}
+				// Load metadata from the assembly
+				mot.AddMetaData(asm);
+				// Look for plugins
+				foreach (var candidate in types)
+				{
+					if (typeof(AbstractPlugin).IsAssignableFrom(candidate))
+					{
+						// Go ahead and try to load it
+						try
+						{
+							this.Log().Debug("Creating plugin '{0}.{1}'", candidate.Namespace, candidate.Name);
+							AbstractPlugin instance = (AbstractPlugin)Activator.CreateInstance(candidate);
+							m_pluginsAvailable[instance.UUID] = instance;
+						}
+						catch (Exception ex)
+						{
+							this.Log().Error("Unable to create plugin with class '{0}' in extension '{1}' - {2}",
+								candidate.Name,
+								pluginDLL,
+								ex.ToString()
+								);
+							continue;
+						}
+					}
+				}
+			}
+		}
+*/
+
 		static void Main(string[] args)
 		{
 			// Set up the logger
@@ -122,7 +195,8 @@ namespace SensHub.Server
 			plugins.AddPlugin(new WebHookPlugin());
 			plugins.AddPlugin(new ScriptPlugin());
 			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
-			plugins.LoadPlugins(pluginDir.BasePath);
+			// TODO: Need to implement this in a platform specific way
+			//plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();
             // Unpack the static site contents and start the HTTP server
 			if (options.WebDirectory == null)

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Core.Utils;
 using SensHub.Core.Plugins;
-using SensHub.Server.Managers;
 using Splat;
 
 namespace SensHub.Server.Http

@@ -5,12 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SensHub.Server;
 using SensHub.Plugins;
-using SensHub.Core.Plugins;
 using Splat;
 
-namespace SensHub.Server.Managers
+namespace SensHub.Core.Plugins
 {
 	/// <summary>
 	/// Implements the <see cref="IPluginHost"/> interface for plugins.
@@ -20,7 +18,8 @@ namespace SensHub.Server.Managers
 	/// </summary>
 	internal class PluginHost : IPluginHost, IEnableLogger
 	{
-		
+		private static Version MyVersion = new Version(1, 0, 0);
+
 		private AbstractPlugin m_plugin;
 		private IFolder m_data;
 		private IMessageBus m_messageBus;
@@ -34,7 +33,7 @@ namespace SensHub.Server.Managers
 		#region Implementation of IPluginHost
 		public Version Version
 		{
-			get { return Assembly.GetEntryAssembly().GetName().Version; }
+			get { return MyVersion; }
 		}
 
 		public CultureInfo Culture
@@ -50,8 +49,8 @@ namespace SensHub.Server.Managers
 				{
 					if (m_data == null)
 					{
-						FileSystem fs = Locator.Current.GetService<FileSystem>();
-						m_data = fs.OpenFolder(FileSystem.DataFolder).OpenFolder(m_plugin.UUID.ToString());
+						IFolder fs = Locator.Current.GetService<IFolder>();
+						m_data = fs.OpenFolder(ServerConstants.DataFolder).OpenFolder(m_plugin.UUID.ToString());
 					}
 				}
 				return m_data; 
