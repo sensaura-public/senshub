@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- A reference to the entire .NET Framework is automatically included -->
-    <ProjectReference Include="..\..\iotweb\IotWeb Portable\IotWeb Portable.csproj">
+    <ProjectReference Include="..\iotweb\IotWeb Portable\IotWeb Portable.csproj">
       <Project>{e788ca1a-9838-48a1-a961-1137e74eaf70}</Project>
       <Name>IotWeb Portable</Name>
     </ProjectReference>
@@ -71,8 +71,92 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.eot" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.woff" />
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Bold.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Bold.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Bold.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Light.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Light.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Light.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Medium.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Medium.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Medium.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Regular.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Regular.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Regular.woff2" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Thin.ttf" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Thin.woff" />
+    <EmbeddedResource Include="Resources\Site\font\roboto\Roboto-Thin.woff2" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\lua.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\mqtt.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Images\webhooks.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\css\clockpicker.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\css\codemirror.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\css\materialize.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\css\sensaura.css" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\font\material-design-icons\Material-Design-Icons.svg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\img\icons\action.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\img\icons\plugin.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\img\icons\source.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\img\loading.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\clockpicker.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\codemirror.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\jquery.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\jqueryjson.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\lua.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\markdown.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\materialize.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Site\js\sensaura.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\metadata.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
