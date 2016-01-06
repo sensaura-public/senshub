@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Net.WebSockets;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using IotWeb.Common.Http;
 using SensHub.Plugins;
 using SensHub.Core.Utils;
 using SensHub.Core.Messages;
 using Splat;
 
-namespace SensHub.Server.Http
+namespace SensHub.Core.Http
 {
     public class HttpSession : ISubscriber, IEnableLogger
     {
@@ -35,8 +35,6 @@ namespace SensHub.Server.Http
 			/// <param name="payload"></param>
 			public MessageInfo(ITopic topic, Message payload)
 			{
-                if (topic == null)
-                    System.Console.WriteLine("Queue message with null topic.");
 				Timestamp = DateTime.Now;
 				Topic = topic;
 				Payload = payload;
@@ -136,22 +134,7 @@ namespace SensHub.Server.Http
                     m_messages.Add(info);
                 return;
             }
-            if (Socket.State == WebSocketState.Open)
-            {
-                try
-                {
-                    await Socket.SendAsync(
-                        new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonParser.ToJson(info.Pack()))),
-                        WebSocketMessageType.Text,
-                        true,
-                        CancellationToken.None
-                        );
-                }
-                catch (Exception ex)
-                {
-                    this.Log().Debug("Unable to dispatch message to session - {0}", ex.Message);
-                }
-			}
+			// TODO: Send the message over the socket connection
 		}
 
 		#region Static interface

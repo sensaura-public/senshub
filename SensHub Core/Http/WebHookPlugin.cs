@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 
-namespace SensHub.Server.Http
+namespace SensHub.Core.Http
 {
 	public class WebHookPlugin : AbstractPlugin
 	{

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SensHub.Server.Http
+namespace SensHub.Core.Http
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class RpcCall : Attribute

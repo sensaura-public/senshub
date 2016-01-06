@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using SensHub.Plugins;
 using SensHub.Core.Plugins;
 using SensHub.Core.Messages;
-using SensHub.Server.Http;
+using SensHub.Core.Http;
 using SensHub.Server.Scripting;
 using CommandLine;
 using Splat;
@@ -187,8 +187,9 @@ namespace SensHub.Server
 				webSite = sitePath.BasePath;
 			}
 			int httpPort = (int)serverConfigDescription.GetAppliedValue(serverConfig, "httpPort");
-            HttpServer httpServer = new HttpServer(webSite, httpPort);
-            Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
+// TODO: need to set up http server
+//            HttpServer httpServer = new HttpServer(webSite, httpPort);
+//            Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
 			// Initialise the plugins (internal and user provided)
 			PluginManager plugins = new PluginManager();
 			plugins.AddPlugin(new WebHookPlugin());
@@ -198,17 +199,18 @@ namespace SensHub.Server
 			//plugins.LoadPlugins(pluginDir.BasePath);
 			plugins.InitialisePlugins();
             // Unpack the static site contents and start the HTTP server
-			if (options.WebDirectory == null)
-				httpServer.UnpackSite();
-            httpServer.UnpackImages();
-			httpServer.Start();
+// TODO: Need to set up HTTP server
+//			if (options.WebDirectory == null)
+//				httpServer.UnpackSite();
+//            httpServer.UnpackImages();
+//			httpServer.Start();
 			// The MessageBus will run on the main thread until a shutdown is requested
 			System.Console.WriteLine("Server running - press any key to quit.");
 			messageBus.Run();
 			// Clean up
 			System.Console.WriteLine("Shutting down ...");
 			plugins.ShutdownPlugins();
-            httpServer.Stop();
+//            httpServer.Stop();
         }
 	}
 }
