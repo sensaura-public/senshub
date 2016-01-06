@@ -69,9 +69,6 @@
     <Compile Include="Http\StaticFileHandler.cs" />
     <Compile Include="Http\WebSocketRequestHandler.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Mqtt\MessageBus.cs" />
-    <Compile Include="Mqtt\MqttPlugin.cs" />
-    <Compile Include="Mqtt\Topic.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scripting\ScriptAction.cs" />

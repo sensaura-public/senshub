@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using SensHub.Plugins;
 using Splat;
 
-namespace SensHub.Server.Mqtt
+namespace SensHub.Core.Messages
 {
 	public class MessageBus : Topic, IMessageBus, IEnableLogger
 	{
@@ -96,7 +96,7 @@ namespace SensHub.Server.Mqtt
 					{
 						if (subscriber != message.Source)
 						{
-							ThreadPool.QueueUserWorkItem((x) =>
+							Task.Factory.StartNew(() => 
 							{
 								try
 								{
@@ -122,12 +122,14 @@ namespace SensHub.Server.Mqtt
 					m_messagesReceived = 0;
 					m_lastHeartbeat = DateTime.Now;
 				}
+/*
 				// TODO: Check for server shutdown message
 				if (System.Console.KeyAvailable)
 				{
 					System.Console.ReadKey();
 					return;
 				}
+*/
 			}
 		}
 

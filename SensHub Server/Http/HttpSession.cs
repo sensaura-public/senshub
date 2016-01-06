@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 using SensHub.Core.Utils;
-using SensHub.Server.Mqtt;
+using SensHub.Core.Messages;
 using Splat;
 
 namespace SensHub.Server.Http

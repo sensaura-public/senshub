@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SensHub.Plugins;
 
-namespace SensHub.Server.Mqtt
+namespace SensHub.Core.Messages
 {
 	/// <summary>
 	/// Topics are used to group messages. A topic may only be created as a

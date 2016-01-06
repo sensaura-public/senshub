@@ -45,6 +45,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Messages\MessageBus.cs" />
+    <Compile Include="Messages\Topic.cs" />
     <Compile Include="Plugins\MasterObjectTable.cs" />
     <Compile Include="Plugins\MetadataParser.cs" />
     <Compile Include="Plugins\PluginHost.cs" />
