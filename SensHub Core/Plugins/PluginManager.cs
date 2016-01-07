@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IotWeb.Common;
 using SensHub.Plugins;
 using Splat;
 
@@ -13,7 +14,7 @@ namespace SensHub.Core.Plugins
 	/// <summary>
 	/// This class manages the plugins.
 	/// </summary>
-	public class PluginManager : IEnableLogger
+	public class PluginManager : IServer, IEnableLogger
 	{
 		private Dictionary<Guid, AbstractPlugin> m_pluginsAvailable = new Dictionary<Guid, AbstractPlugin>();
 		private Dictionary<Guid, PluginHost> m_pluginsEnabled = new Dictionary<Guid, PluginHost>();
@@ -78,5 +79,22 @@ namespace SensHub.Core.Plugins
 				}
 			}
 		}
+
+		#region Implementation of IServer
+		public event ServerStoppedHandler ServerStopped;
+
+		public bool Running { get; private set; }
+
+		public void Start()
+		{
+			// TODO: Implement this
+		}
+
+		public void Stop()
+		{
+			// TODO: Implement this
+		}
+		#endregion
+
 	}
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using IotWeb.Common;
 using IotWeb.Common.Util;
@@ -22,6 +23,11 @@ namespace SensHub.Core
 		// Object identification
 		private static Guid MyUUID = Guid.Parse("{377ECFA2-2B36-4BBF-8F3F-66C0582DFED8}");
 		private const UserObjectType MyType = UserObjectType.Server;
+
+		// Child services
+		private List<IServer> m_servers = new List<IServer>();
+		private bool m_stopping;
+		private AutoResetEvent m_complete = new AutoResetEvent(false);
 
 		#region Properties and events
 		/// <summary>
@@ -84,12 +90,55 @@ namespace SensHub.Core
 		#region Implementation of IService
 		public void Start()
 		{
-			// TODO: Implement this
+			lock (this)
+			{
+				if (Running)
+					throw new InvalidOperationException("Servers already running.");
+				Running = true;
+			}
+			// Start all the servers
+			foreach (IServer server in m_servers)
+			{
+				// Handle a server failing during startup
+				lock (this)
+				{
+					if (m_stopping)
+						return;
+				}
+				// Attempt to start the server
+				try
+				{
+					server.Start();
+				}
+				catch (Exception)
+				{
+					// Failed, stop any active servers
+					Stop();
+					return;
+				}
+			}
+			// In this implementation we want to block until services are stopped
+			m_complete.WaitOne();
 		}
 
 		public void Stop()
 		{
-			// TODO: Implement this
+			lock (this)
+			{
+				if (!Running)
+					return;
+				m_stopping = true;
+			}
+			// Shutdown all services
+			foreach (IServer server in m_servers)
+				server.Stop();
+			Running = false;
+			// Fire the master stopping event
+			ServerStoppedHandler handler = ServerStopped;
+			if (handler != null)
+				handler(this);
+			// Set the event to allow 'Start()' to exit
+			m_complete.Set();
 		}
 		#endregion
 
@@ -116,6 +165,24 @@ namespace SensHub.Core
 		{
 			if (Running)
 				throw new InvalidOperationException("Services have already been started.");
+			m_servers.Add(server);
+			server.ServerStopped += OnChildServerStopped;
+		}
+
+		/// <summary>
+		/// Any child server stopping causes everything to shut down
+		/// </summary>
+		/// <param name="server"></param>
+		void OnChildServerStopped(IServer server)
+		{
+			// Are we already in shutdown stage ?
+			lock (this)
+			{
+				if (m_stopping)
+					return;
+			}
+			// If any child stops we stop all services
+			Stop();
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
+using IotWeb.Server;
 using SensHub.Plugins;
 using SensHub.Core;
 using SensHub.Core.Plugins;
@@ -15,9 +16,6 @@ namespace SensHub.Server
 {
 	class Program : IEnableLogger
 	{
-
-
-
 		// Define a class to receive parsed values
 		class Options
 		{
@@ -142,53 +140,22 @@ namespace SensHub.Server
 			Locator.CurrentMutable.RegisterConstant(mot, typeof(MasterObjectTable));
 			// Set up the service manager (which doubles as the Server object)
 			ServiceManager server = new ServiceManager();
-			// TODO: Add additional services
+			// Add the message bus service
 			MessageBus msgBus = new MessageBus();
 			Locator.CurrentMutable.RegisterConstant(msgBus, typeof(IMessageBus));
 			server.AddServer(msgBus);
+			// Add the plugin manager service (this also provides scheduled execution)
+			PluginManager plugins = new PluginManager();
+			server.AddServer(plugins);
+			// TODO: Add dynamic plugins
+			// Add and configure the HTTP server
+			SensHubHttpServer http = new SensHubHttpServer(new SocketServer(server.HttpPort));
+			server.AddServer(http);
 			// Initialise logging
 			logger.Enable(server.LogLevel);
 			// Run all the services
 			server.Start();
 			// TODO: Clean up
-
-/*
-			// Set up the MessageBus
-			MessageBus messageBus = new MessageBus();
-			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
-			mot.AddMetaData(Assembly.GetExecutingAssembly());
-            // Set up the  HttpServer
-			string webSite = options.WebDirectory;
-			if (webSite == null)
-			{
-				FileSystem sitePath = (FileSystem)fs.OpenFolder(FileSystem.SiteFolder);
-				webSite = sitePath.BasePath;
-			}
-// TODO: need to set up http server
-//            HttpServer httpServer = new HttpServer(webSite, httpPort);
-//            Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
-			// Initialise the plugins (internal and user provided)
-			PluginManager plugins = new PluginManager();
-			plugins.AddPlugin(new WebHookPlugin());
-			plugins.AddPlugin(new ScriptPlugin());
-			FileSystem pluginDir = fs.OpenFolder("plugins") as FileSystem;
-			// TODO: Need to implement this in a platform specific way
-			//plugins.LoadPlugins(pluginDir.BasePath);
-			plugins.InitialisePlugins();
-            // Unpack the static site contents and start the HTTP server
-// TODO: Need to set up HTTP server
-//			if (options.WebDirectory == null)
-//				httpServer.UnpackSite();
-//            httpServer.UnpackImages();
-//			httpServer.Start();
-			// The MessageBus will run on the main thread until a shutdown is requested
-			System.Console.WriteLine("Server running - press any key to quit.");
-			messageBus.Run();
-			// Clean up
-			System.Console.WriteLine("Shutting down ...");
-			plugins.ShutdownPlugins();
-//            httpServer.Stop();
-*/
         }
 	}
 }

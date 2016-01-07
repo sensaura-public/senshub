@@ -8,9 +8,9 @@ using IotWeb.Common.Http;
 
 namespace SensHub.Core.Http
 {
-	public class HttpServer : BaseHttpServer
+	public class SensHubHttpServer : BaseHttpServer
 	{
-		public HttpServer(ISocketServer server)
+		public SensHubHttpServer(ISocketServer server)
 			: base(server)
 		{
 			// Add our handlers
