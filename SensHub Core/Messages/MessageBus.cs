@@ -5,12 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using IotWeb.Common;
 using SensHub.Plugins;
 using Splat;
 
 namespace SensHub.Core.Messages
 {
-	public class MessageBus : Topic, IMessageBus, IEnableLogger
+	public class MessageBus : Topic, IServer, IMessageBus, IEnableLogger
 	{
 		/// <summary>
 		/// Holds all the information needed to process a message.
@@ -78,13 +79,43 @@ namespace SensHub.Core.Messages
 			m_topics = new Dictionary<ISubscriber, ISet<ITopic>>();
 		}
 
+		#region Implementation of IServer
+		public event ServerStoppedHandler ServerStopped;
+
+		public bool Running { get; private set; }
+
+		public void Start()
+		{
+			lock (this)
+			{
+				if (Running)
+					throw new InvalidOperationException("Service is already running.");
+				Task.Factory.StartNew(() =>
+				{
+					Running = true;
+					Run();
+				});
+			}
+		}
+
+		public void Stop()
+		{
+			lock (this)
+			{
+				if (!Running)
+					return;
+				Running = false;
+			}
+		}
+		#endregion
+
 		/// <summary>
 		/// Run the messagebus
 		/// 
 		/// This is a blocking method, it will run in a loop until the
 		/// server is requested to shut down.
 		/// </summary>
-		public void Run()
+		private void Run()
 		{
 			QueuedMessage message;
 			while (true)
@@ -122,14 +153,6 @@ namespace SensHub.Core.Messages
 					m_messagesReceived = 0;
 					m_lastHeartbeat = DateTime.Now;
 				}
-/*
-				// TODO: Check for server shutdown message
-				if (System.Console.KeyAvailable)
-				{
-					System.Console.ReadKey();
-					return;
-				}
-*/
 			}
 		}
 
@@ -238,5 +261,6 @@ namespace SensHub.Core.Messages
             m_queue.Add(new QueuedMessage(topic, subscribers, source, message));
 		}
 		#endregion
+
 	}
 }

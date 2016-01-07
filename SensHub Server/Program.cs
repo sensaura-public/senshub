@@ -143,9 +143,11 @@ namespace SensHub.Server
 			// Set up the service manager (which doubles as the Server object)
 			ServiceManager server = new ServiceManager();
 			// TODO: Add additional services
-
+			MessageBus msgBus = new MessageBus();
+			Locator.CurrentMutable.RegisterConstant(msgBus, typeof(IMessageBus));
+			server.AddServer(msgBus);
 			// Initialise logging
-			//logger.Enable(server.LogLevel);
+			logger.Enable(server.LogLevel);
 			// Run all the services
 			server.Start();
 			// TODO: Clean up
