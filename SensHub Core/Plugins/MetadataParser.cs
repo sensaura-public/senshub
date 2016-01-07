@@ -3,6 +3,7 @@ using System.IO;
 using System.Xml;
 using System.Xml.Linq;
 using System.Linq;
+using System.Reflection;
 using System.Globalization;
 using System.Collections.Generic;
 using System.Text;
@@ -22,6 +23,9 @@ namespace SensHub.Core.Plugins
 	/// </summary>
 	static class MetadataParser
 	{
+		// Where to find the image resources
+		private const string ImagePrefix = "Resources.Images.";
+
 		// Tag names
 		private const string MetadataTag = "metadata";
 		private const string ClassTag = "class";
@@ -325,8 +329,9 @@ namespace SensHub.Core.Plugins
 		/// </summary>
 		/// <param name="baseName"></param>
 		/// <param name="input"></param>
-		public static void LoadFromStream(string baseName, Stream input)
+		public static void LoadFromStream(Assembly resources, Stream input)
 		{
+			string baseName = resources.GetName().Name;
 			LogHost.Default.Debug("Loading metadata for assembly '{0}'", baseName);
 			XDocument document = null;
 			try
@@ -358,7 +363,7 @@ namespace SensHub.Core.Plugins
 				attr = node.Attribute(NameAttribute);
 				string className = baseName + "." + attr.Value;
 				LogHost.Default.Debug("Loading class definition for '{0}'", className);
-				ProcessClass(baseName, baseName + "." + attr.Value, defaultLanguage, node);
+				ProcessClass(resources, baseName, baseName + "." + attr.Value, defaultLanguage, node);
 			}
 		}
 
@@ -497,7 +502,7 @@ namespace SensHub.Core.Plugins
 		/// <param name="className"></param>
 		/// <param name="defaultLang"></param>
 		/// <param name="element"></param>
-		private static void ProcessClass(string assembly, string className, string defaultLang, XElement element)
+		private static void ProcessClass(Assembly resources, string assembly, string className, string defaultLang, XElement element)
 		{
 			MasterObjectTable mot = Locator.Current.GetService<MasterObjectTable>();
             // Get the descriptions
@@ -509,8 +514,8 @@ namespace SensHub.Core.Plugins
                 // Process the description
                 LogHost.Default.Debug("Loading description definition for class '{0}'", className);
                 ObjectDescription description = ProcessDescription(defaultLang, nodes.First());
-                if ((description.Icon != null) && (description.Icon.Length > 0))
-                    description.Icon = ServiceManager.BaseImageUrl + "/" + assembly + "." + description.Icon;
+				if ((description.Icon != null) && (description.Icon.Length > 0))
+					description.Icon = CopyIconImage(resources, assembly, description.Icon);
                 mot.AddDescription(className, description);
             }
 			// Get the configurations
@@ -528,5 +533,24 @@ namespace SensHub.Core.Plugins
 		}
 		#endregion
 
+		private static string CopyIconImage(Assembly resources, string assembly, string iconName)
+		{
+			// Get the stream for the source image
+			Stream input = resources.GetManifestResourceStream(assembly + "." + ImagePrefix + iconName);
+			if (input == null)
+				return "";
+			// Copy the image to the static image directory
+			IFolder folder = Locator.Current.GetService<IFolder>();
+			folder = folder.CreateChildren(ServiceManager.SiteFolder + ServiceManager.BaseImageUrl);
+			string filename = assembly + "." + iconName;
+			Stream output = folder.CreateFile(filename, FileAccessMode.ReadAndWrite, CreationOptions.ReplaceExisting);
+			if (output == null)
+				return "";
+			input.CopyTo(output);
+			input.Dispose();
+			output.Dispose();
+			// All done
+			return ServiceManager.BaseImageUrl + "/" + filename;
+		}
 	}
 }

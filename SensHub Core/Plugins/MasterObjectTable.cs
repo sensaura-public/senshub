@@ -216,7 +216,7 @@ namespace SensHub.Core.Plugins
 				LogHost.Default.Warn("Could not find metadata resource for assembly {0}.", assembly.GetName().Name);
 				return;
 			}
-			MetadataParser.LoadFromStream(assembly.GetName().Name, source);
+			MetadataParser.LoadFromStream(assembly, source);
 		}
 
 		/// <summary>
