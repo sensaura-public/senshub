@@ -22,9 +22,6 @@ namespace SensHub.Core.Plugins
 	/// </summary>
 	static class MetadataParser
 	{
-        // Base image URL
-        private const string BaseImageUrl = "img/plugins/";
-
 		// Tag names
 		private const string MetadataTag = "metadata";
 		private const string ClassTag = "class";
@@ -513,7 +510,7 @@ namespace SensHub.Core.Plugins
                 LogHost.Default.Debug("Loading description definition for class '{0}'", className);
                 ObjectDescription description = ProcessDescription(defaultLang, nodes.First());
                 if ((description.Icon != null) && (description.Icon.Length > 0))
-                    description.Icon = BaseImageUrl + assembly + "." + description.Icon;
+                    description.Icon = ServiceManager.BaseImageUrl + "/" + assembly + "." + description.Icon;
                 mot.AddDescription(className, description);
             }
 			// Get the configurations

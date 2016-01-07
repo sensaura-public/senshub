@@ -149,7 +149,7 @@ namespace SensHub.Server
 			server.AddServer(plugins);
 			// TODO: Add dynamic plugins
 			// Add and configure the HTTP server
-			SensHubHttpServer http = new SensHubHttpServer(new SocketServer(server.HttpPort));
+			SensHubHttpServer http = new SensHubHttpServer(new SocketServer(server.HttpPort), true, true);
 			server.AddServer(http);
 			// Initialise logging
 			logger.Enable(server.LogLevel);

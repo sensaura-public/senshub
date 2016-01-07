@@ -80,4 +80,23 @@ namespace SensHub.Plugins
 		bool FileExists(string name);
 	}
 
+	public static class FolderExtensions
+	{
+		/// <summary>
+		/// Create all child folders in a path.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		public static IFolder CreateChildren(this IFolder parent, string path)
+		{
+			// Split the path based on separators ('/' and '\')
+			string[] parts = path.Split(new char[] { '/', '\\' });
+			IFolder result = parent;
+			foreach (string part in parts)
+				result = result.OpenFolder(part);
+			return result;
+		}
+	}
+
 }

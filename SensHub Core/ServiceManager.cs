@@ -20,6 +20,9 @@ namespace SensHub.Core
 		public const string SiteFolder = "site";
 		public const string LogFolder = "logs";
 
+		// Base image URL
+		public const string BaseImageUrl = "/img/plugins";
+
 		// Object identification
 		private static Guid MyUUID = Guid.Parse("{377ECFA2-2B36-4BBF-8F3F-66C0582DFED8}");
 		private const UserObjectType MyType = UserObjectType.Server;
