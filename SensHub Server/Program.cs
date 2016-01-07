@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using SensHub.Plugins;
+using SensHub.Core;
 using SensHub.Core.Plugins;
 using SensHub.Core.Messages;
 using SensHub.Core.Http;
@@ -12,35 +13,10 @@ using Splat;
 
 namespace SensHub.Server
 {
-	class Program : IUserObject, IConfigurable, IEnableLogger
+	class Program : IEnableLogger
 	{
-		private static Guid MyUUID = Guid.Parse("{377ECFA2-2B36-4BBF-8F3F-66C0582DFED8}");
-		private const UserObjectType MyType = UserObjectType.Server;
 
-		#region Implementation of IUserObject
-		public System.Guid UUID
-		{
-			get { return MyUUID; }
-		}
 
-		public UserObjectType ObjectType
-		{
-			get { return MyType; }
-		}
-		#endregion
-
-		#region Implementation of IConfigurable
-		public bool ValidateConfiguration(IConfigurationDescription description, IDictionary<string, object> values, IDictionary<string, string> failures)
-		{
-			// TODO: Implement this
-			return true;
-		}
-
-		public void ApplyConfiguration(IConfigurationDescription description, IDictionary<string, object> values)
-		{
-			throw new NotImplementedException();
-		}
-		#endregion
 
 		// Define a class to receive parsed values
 		class Options
@@ -145,7 +121,7 @@ namespace SensHub.Server
 
 		static void Main(string[] args)
 		{
-			// Set up the logger
+			// Set up the logging for the platform
 			Logger logger = new Logger();
 			Locator.CurrentMutable.RegisterConstant(logger, typeof(ILogger));
 			// Parse command line to get paths
@@ -158,27 +134,27 @@ namespace SensHub.Server
                 LogHost.Default.Error("Error: The storage directory '{0}' does not exist.", options.StorageDirectory);
 				return;
 			}
-			// Make it globally available.
+			// Set up the IFolder implementation for the platform
 			FileSystem fs = new FileSystem(options.StorageDirectory);
 			Locator.CurrentMutable.RegisterConstant(fs, typeof(IFolder));
-			// Set up the MessageBus
-			MessageBus messageBus = new MessageBus();
-			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
 			// Set up the Master Object Table
 			MasterObjectTable mot = new MasterObjectTable();
 			Locator.CurrentMutable.RegisterConstant(mot, typeof(MasterObjectTable));
+			// Set up the service manager (which doubles as the Server object)
+			ServiceManager server = new ServiceManager();
+			// TODO: Add additional services
+
+			// Initialise logging
+			//logger.Enable(server.LogLevel);
+			// Run all the services
+			server.Start();
+			// TODO: Clean up
+
+/*
+			// Set up the MessageBus
+			MessageBus messageBus = new MessageBus();
+			Locator.CurrentMutable.RegisterConstant(messageBus, typeof(IMessageBus));
 			mot.AddMetaData(Assembly.GetExecutingAssembly());
-			// TODO: Create and add the server instance
-			Program server = new Program();
-			mot.AddInstance(server);
-            // Load the server configuration
-			IConfigurationDescription serverConfigDescription = mot.GetConfigurationDescription(server.UUID);
-			IDictionary<string, object> serverConfig = mot.GetConfigurationFromFile(server.UUID, "SensHub.json");
-            // Initialise logging now we have a server configuration
-			LogLevel logLevel;
-			if (!Enum.TryParse<LogLevel>(serverConfigDescription.GetAppliedValue(serverConfig, "logLevel").ToString(), out logLevel))
-				logLevel = LogLevel.Warn;
-			logger.Enable(logLevel);
             // Set up the  HttpServer
 			string webSite = options.WebDirectory;
 			if (webSite == null)
@@ -186,7 +162,6 @@ namespace SensHub.Server
 				FileSystem sitePath = (FileSystem)fs.OpenFolder(FileSystem.SiteFolder);
 				webSite = sitePath.BasePath;
 			}
-			int httpPort = (int)serverConfigDescription.GetAppliedValue(serverConfig, "httpPort");
 // TODO: need to set up http server
 //            HttpServer httpServer = new HttpServer(webSite, httpPort);
 //            Locator.CurrentMutable.RegisterConstant(httpServer, typeof(HttpServer));
@@ -211,6 +186,7 @@ namespace SensHub.Server
 			System.Console.WriteLine("Shutting down ...");
 			plugins.ShutdownPlugins();
 //            httpServer.Stop();
+*/
         }
 	}
 }

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <metadata defaultLang="en">
   <!-- Configuration description for the server (main class) -->
-  <class name="Program">
+  <class name="ServiceManager">
     <description>
       <icon image="senshub.png"/>
       <displayname lang="en">SensHub Server</displayname>

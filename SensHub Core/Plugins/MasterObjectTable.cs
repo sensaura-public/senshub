@@ -40,7 +40,7 @@ namespace SensHub.Core.Plugins
             Assemblies = new List<Assembly>();
 			// Get the containing folder for configurations
 			IFolder fs = Locator.Current.GetService<IFolder>();
-			m_configDirectory = fs.OpenFolder(ServerConstants.DataFolder);
+			m_configDirectory = fs.OpenFolder(ServiceManager.DataFolder);
         }
 
         /// <summary>

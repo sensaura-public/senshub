@@ -50,7 +50,7 @@ namespace SensHub.Core.Plugins
 					if (m_data == null)
 					{
 						IFolder fs = Locator.Current.GetService<IFolder>();
-						m_data = fs.OpenFolder(ServerConstants.DataFolder).OpenFolder(m_plugin.UUID.ToString());
+						m_data = fs.OpenFolder(ServiceManager.DataFolder).OpenFolder(m_plugin.UUID.ToString());
 					}
 				}
 				return m_data; 
