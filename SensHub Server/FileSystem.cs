@@ -96,7 +96,7 @@ namespace SensHub.Server
 			return File.Exists(Path.Combine(m_path, name));
 		}
 
-		public IFolder OpenFolder(string name)
+		public IFolder OpenFolder(string name, bool createIfNotPresent = true)
 		{
 			lock (m_folders)
 			{
@@ -106,8 +106,11 @@ namespace SensHub.Server
 					// Try and create the folder instance
 					try
 					{
-						FileSystem folder = new FileSystem(Path.Combine(m_path, name));
-						m_folders[name] = folder;
+						string target = Path.Combine(m_path, name);
+						if (Directory.Exists(target) || createIfNotPresent)
+							m_folders[name] = new FileSystem(target);
+						else
+							return null;
 					}
 					catch (Exception ex)
 					{

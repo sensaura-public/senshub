@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,7 +34,28 @@ namespace SensHub.Core.Http
 		/// <param name="context"></param>
 		public void HandleRequest(string uri, HttpRequest request, HttpResponse response, HttpContext context)
 		{
-			throw new NotImplementedException();
+			// Split into path and filename
+			int index = uri.LastIndexOf('/');
+			string path = (index < 0) ? "" : uri.Substring(0, index);
+			string filename = (index < 0) ? uri : uri.Substring(index + 1);
+			// Use default filename if applicable
+			if (filename.Length == 0)
+				filename = m_defaultFile;
+			// Strip leading separators from URI
+			if (path.StartsWith("/"))
+				path = path.Substring(1);
+			// Now look for the file
+			IFolder folder = m_basePath.OpenChild(path);
+			if (folder == null)
+				throw new HttpNotFoundException();
+			if (!folder.FileExists(filename))
+				throw new HttpNotFoundException();
+			// Get the content type
+			response.ResponseCode = HttpResponseCode.Ok;
+			response.ContentType = MimeType.FromExtension(filename);
+			Stream input = folder.CreateFile(filename, FileAccessMode.Read, CreationOptions.OpenIfExists);
+			input.CopyTo(response.Content);
+			input.Dispose();
 		}
 	}
 }

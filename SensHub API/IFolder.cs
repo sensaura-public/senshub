@@ -50,8 +50,12 @@ namespace SensHub.Plugins
 		/// The name of the folder to open. The name must not contain path
 		/// separators.
 		/// </param>
+		/// <param name="createIfNotPresent">
+		/// If this parameter is 'true' (default) the folder will be created if it
+		/// is not already present.
+		/// </param>
 		/// <returns>An IFolder instance representing the folder.</returns>
-		IFolder OpenFolder(string name);
+		IFolder OpenFolder(string name, bool createIfNotPresent = true);
 
 		/// <summary>
 		/// Create (or open) a new file in the folder.
@@ -97,6 +101,27 @@ namespace SensHub.Plugins
 				result = result.OpenFolder(part);
 			return result;
 		}
+
+		/// <summary>
+		/// Create all child folders in a path.
+		/// </summary>
+		/// <param name="parent"></param>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		public static IFolder OpenChild(this IFolder parent, string path)
+		{
+			// Split the path based on separators ('/' and '\')
+			string[] parts = path.Split(new char[] { '/', '\\' });
+			IFolder result = parent;
+			foreach (string part in parts)
+			{
+				result = result.OpenFolder(part, false);
+				if (result == null)
+					break;
+			}
+			return result;
+		}
+
 	}
 
 }
