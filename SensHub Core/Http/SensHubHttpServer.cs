@@ -74,7 +74,8 @@ namespace SensHub.Core.Http
 			folder = Locator.Current.GetService<IFolder>();
 			folder = folder.CreateChildren(ServiceManager.SiteFolder + ServiceManager.BaseImageUrl);
 			AddHttpRequestHandler(ServiceManager.BaseImageUrl + "/", new StaticHttpHandler(folder));
-			// TODO: Add the RPC request handler
+			// Add the RPC request handler
+			AddWebSocketRequestHandler("/api/", new WebSocketRpcHandler());
 		}
 	}
 }
