@@ -140,6 +140,7 @@ namespace SensHub.Server
 			Locator.CurrentMutable.RegisterConstant(mot, typeof(MasterObjectTable));
 			// Set up the service manager (which doubles as the Server object)
 			ServiceManager server = new ServiceManager();
+			Locator.CurrentMutable.RegisterConstant(server, typeof(ServiceManager));
 			// Add the message bus service
 			MessageBus msgBus = new MessageBus();
 			Locator.CurrentMutable.RegisterConstant(msgBus, typeof(IMessageBus));

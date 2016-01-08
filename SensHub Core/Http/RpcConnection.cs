@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,22 +12,38 @@ using Splat;
 
 namespace SensHub.Core.Http
 {
+    [AttributeUsage(AttributeTargets.Method)]
+    class RpcExport : Attribute
+    {
+        /// <summary>
+        /// The public name of function
+        /// </summary>
+        public readonly string FunctionName;
+
+        /// <summary>
+        /// If authentication is required to invoke the method.
+        /// </summary>
+        public bool AuthenticationRequired { get; set; }
+
+        /// <summary>
+        /// Constructor, does nothing - use named parameters
+        /// </summary>
+        public RpcExport(string functionName)
+        {
+            FunctionName = functionName;
+            AuthenticationRequired = false;
+        }
+    }
+
+	class RpcMethod 
+	{
+		public MethodInfo Method { get; set; }
+		public RpcExport Exported { get; set; }
+		public string[] Arguments { get; set; }
+	}
+
 	class RpcConnection : ISubscriber
 	{
-		/// <summary>
-		/// Supported RPC functions
-		/// </summary>
-		enum RpcFunction
-		{
-			Authenticate,
-			Subscribe,
-			Unsubscribe,
-			GetState,
-			GetConfiguration,
-			SetConfiguration,
-			CreateInstance
-		}
-
 		// Expected fields in incoming requests
 		private const string FunctionName = "function";
 		private const string FunctionSequence = "sequence";
@@ -43,6 +60,43 @@ namespace SensHub.Core.Http
 		private MasterObjectTable m_mot;
 		private MessageBuilder m_builder;
 		
+		#region RPC Method Cache
+		private static Dictionary<string, RpcMethod> s_functionCache = new Dictionary<string, RpcMethod>();
+
+		/// <summary>
+		/// Static constructor
+		/// 
+		/// Initialise the available RPC methods by inspecting the class
+		/// </summary>
+		static RpcConnection()
+		{
+			// Find all methods on the instance decorated with the RpcCall attribute
+            foreach (MethodInfo method in typeof(RpcConnection).GetRuntimeMethods())
+            {
+				// Is the method marked for RPC export ?
+				RpcExport exported = null;
+				foreach (object attribute in method.GetCustomAttributes(true))
+					if (attribute is RpcExport)
+					{
+						exported = (RpcExport)attribute;
+						break;
+					}
+                if (exported == null)
+                    continue;
+				// Build up information about the call
+				RpcMethod methodInfo = new RpcMethod();
+				methodInfo.Method = method;
+				methodInfo.Exported = exported;
+				ParameterInfo[] args = method.GetParameters();
+				methodInfo.Arguments = new string[args.Length];
+				for (int i = 0; i < args.Length; i++)
+					methodInfo.Arguments[i] = args[i].Name;
+				// Add it to the cache (TODO: Should check for duplicates)
+				s_functionCache.Add(methodInfo.Exported.FunctionName, methodInfo);
+			}
+		}
+		#endregion
+
 		/// <summary>
 		/// Constructor with a socket
 		/// </summary>
@@ -160,61 +214,38 @@ namespace SensHub.Core.Http
 		/// <param name="data"></param>
 		private void ProcessRpcCall(IDictionary<string, object> data)
 		{
-			RpcFunction function;
 			Dictionary<string, object> result = new Dictionary<string,object>();
 			result[FunctionSequence] = data[FunctionSequence];
-			if (!Enum.TryParse<RpcFunction>(data[FunctionName].ToString(), out function))
+			try 
 			{
-				result[CallStatus] = false;
-				result[CallResult] = String.Format("Unsupported function '{0}'", data[FunctionName].ToString());
-			}
-			else
-			{
+				// Is it a valid function name ?
+				if (!s_functionCache.ContainsKey(data[FunctionName].ToString())) 
+					throw new RpcException(String.Format("Unsupported or unrecognised function '{0}'", data[FunctionName]));
 				// Verify the arguments are at least a dictionary
 				IDictionary<string, object> args = data[FunctionParameters] as IDictionary<string, object>;
 				if (args == null)
-				{
-					result[CallStatus] = false;
-					result[CallResult] = "Invalid arguments provided.";
-				}
-				else
-				{
-					try
-					{
-						object functionResult = null;
-						switch (function)
-						{
-							case RpcFunction.Authenticate:
-								functionResult = RpcAuthenticate(args);
-								break;
-							case RpcFunction.Subscribe:
-								functionResult = RpcSubscribe(args);
-								break;
-							case RpcFunction.Unsubscribe:
-								functionResult = RpcUnsubscribe(args);
-								break;
-							case RpcFunction.GetState:
-								functionResult = RpcGetState(args);
-								break;
-							case RpcFunction.GetConfiguration:
-								functionResult = RpcGetConfiguration(args);
-								break;
-							case RpcFunction.SetConfiguration:
-								functionResult = RpcSetConfiguration(args);
-								break;
-							case RpcFunction.CreateInstance:
-								functionResult = RpcCreateInstance(args);
-								break;
-						}
-						result[CallStatus] = true;
-						result[CallResult] = functionResult;
-					}
-					catch (Exception ex)
-					{
-						result[CallStatus] = false;
-						result[CallResult] = ex.Message;
-					}
-				}
+					throw new RpcException("Incorrectly formed RPC request");
+				// Are all the required arguments present ?
+				RpcMethod method = s_functionCache[data[FunctionName].ToString()];
+				if (!ContainsKeys(args, method.Arguments))
+					throw new RpcException("One or more required arguments are missing.");
+				if (method.Arguments.Length != args.Count)
+					throw new RpcException("Unexpected additional arguments were provided.");
+				// Is authentication required ?
+				if (method.Exported.AuthenticationRequired && !m_authenticated)
+					throw new RpcException("Authentication required");
+				// Map named parameters to an array for invokation
+				object[] callParams = new object[method.Arguments.Length];
+				for (int i = 0; i<method.Arguments.Length; i++)
+					callParams[i] = args[method.Arguments[i]];
+				// Finally, call the method
+				result[CallResult] = method.Method.Invoke(this, callParams);
+				result[CallStatus] = true;
+			}
+			catch (Exception ex) 
+			{
+				result[CallStatus] = false;
+				result[CallResult] = ex.Message;
 			}
 			// Finally we can send back the response
 			string json = JsonParser.ToJson(result);
@@ -226,39 +257,120 @@ namespace SensHub.Core.Http
 		#endregion
 
 		#region RPC Functions
-		private object RpcAuthenticate(IDictionary<string, object> args)
+		/// <summary>
+		/// Authenticate the remote user
+		/// </summary>
+		/// <param name="password">The password to use for authentication</param>
+		/// <returns>True on success</returns>
+		[RpcExport("Authenticate")]
+		private bool RpcAuthenticate(string password)
+		{
+			// Verify it
+			ServiceManager server = Locator.Current.GetService<ServiceManager>();
+			m_authenticated = (server.Password == password);
+			return m_authenticated;
+		}
+
+		/// <summary>
+		/// Subscribe to a topic
+		/// </summary>
+		/// <param name="topic">The topic to subscribe to</param>
+		/// <returns>True on success</returns>
+		[RpcExport("Subscribe", AuthenticationRequired = true)]
+		private bool RpcSubscribe(string topic)
+		{
+			ITopic target = m_messagebus.Create(topic);
+			if (target == null)
+				return false;
+			m_messagebus.Subscribe(target, this);
+			return true;
+		}
+
+		/// <summary>
+		/// Unsubscribe from a topic
+		/// </summary>
+		/// <param name="topic">The topic to unsubscribe from</param>
+		/// <returns>True on success</returns>
+		[RpcExport("Unsubscribe", AuthenticationRequired = true)]
+		private bool RpcUnsubscribe(string topic)
+		{
+			ITopic target = m_messagebus.Create(topic);
+			if (target == null)
+				return false;
+			m_messagebus.Unsubscribe(target, this);
+			return true;
+		}
+
+		/// <summary>
+		/// Get the current server state
+		/// </summary>
+		/// <returns></returns>
+		[RpcExport("GetState", AuthenticationRequired = true)]
+		private IDictionary<string, object> RpcGetState()
+		{
+			return m_mot.Pack();
+		}
+
+		/// <summary>
+		/// Get the configuration for a specified object
+		/// </summary>
+		/// <returns></returns>
+		[RpcExport("GetConfiguration", AuthenticationRequired = true)]
+		private IDictionary<string, object> RpcGetConfiguration(string uuid)
+		{
+			IUserObject instance = m_mot.GetInstance(Guid.Parse(uuid));
+			if (instance == null)
+				throw new ArgumentException("No such object.");
+			IDictionary<string, object> config = m_mot.GetConfiguration(instance.UUID);
+			if (config == null)
+				throw new ArgumentException("Object does not have a configuration.");
+			// Set up the result
+			Dictionary<string, object> result = new Dictionary<string, object>();
+			result["active"] = config;
+			IConfigurationDescription configDescription = m_mot.GetConfigurationDescription(instance.UUID);
+			List<IDictionary<string, object>> details = new List<IDictionary<string, object>>();
+			foreach (IConfigurationValue value in configDescription)
+				details.Add(value.Pack());
+			result["details"] = details;
+			return result;
+		}
+
+		[RpcExport("SetConfiguration", AuthenticationRequired = true)]
+		private IDictionary<string, string> RpcSetConfiguration(string uuid, IDictionary<string, object> config)
+		{
+			// Make sure the object ID is valid
+			IUserObject instance = m_mot.GetInstance(Guid.Parse(uuid));
+			if (instance == null)
+				throw new ArgumentException("No such object.");
+			// Make sure it is an object and it is configurable
+			if (instance.ObjectType.IsFactory() || !(instance is IConfigurable))
+				throw new ArgumentException("Cannot apply configuration to this type of object.");
+			// Get the matching configuration description
+			IConfigurationDescription desc = m_mot.GetConfigurationDescription(instance.UUID);
+			if (desc == null)
+				throw new ArgumentException("No configuration description available for object.");
+			// Verify the configuration
+			Dictionary<string, string> failures = new Dictionary<string, string>();
+			config = desc.Verify(config, failures);
+			if (config != null)
+			{
+				IConfigurable configurable = instance as IConfigurable;
+				if (configurable.ValidateConfiguration(desc, config, failures))
+					configurable.ApplyConfiguration(desc, config);
+			}
+			return failures;
+		}
+
+		[RpcExport("CreateInstance", AuthenticationRequired = true)]
+		private string RpcCreateInstance(string uuid, IDictionary<string, object> config)
 		{
 			return null;
 		}
 
-		private object RpcSubscribe(IDictionary<string, object> args)
+		[RpcExport("StopServer", AuthenticationRequired = true)]
+		private bool RpcStopServer(bool restart)
 		{
-			return null;
-		}
-
-		private object RpcUnsubscribe(IDictionary<string, object> args)
-		{
-			return null;
-		}
-
-		private object RpcGetState(IDictionary<string, object> args)
-		{
-			return null;
-		}
-
-		private object RpcGetConfiguration(IDictionary<string, object> args)
-		{
-			return null;
-		}
-
-		private object RpcSetConfiguration(IDictionary<string, object> args)
-		{
-			return null;
-		}
-
-		private object RpcCreateInstance(IDictionary<string, object> args)
-		{
-			return null;
+			return false;
 		}
 		#endregion
 	}

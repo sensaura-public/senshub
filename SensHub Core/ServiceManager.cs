@@ -52,6 +52,11 @@ namespace SensHub.Core
 		/// The current logging level
 		/// </summary>
 		public LogLevel LogLevel { get; private set; }
+
+		/// <summary>
+		/// The password for the server
+		/// </summary>
+		public string Password { get; private set; }
 		#endregion
 
 		#region Implementation of IUserObject
@@ -87,6 +92,8 @@ namespace SensHub.Core
 			LogLevel = logLevel;
 			// Get the HTTP port
 			HttpPort = (int)description.GetAppliedValue(values, "httpPort");
+			// Get the server password
+			Password = (string)description.GetAppliedValue(values, "password");
 		}
 		#endregion
 
