@@ -53,9 +53,9 @@ namespace SensHub.Core.Http
 			// Get the content type
 			response.ResponseCode = HttpResponseCode.Ok;
 			response.ContentType = MimeType.FromExtension(filename);
-			Stream input = folder.CreateFile(filename, FileAccessMode.Read, CreationOptions.OpenIfExists);
-			input.CopyTo(response.Content);
-			input.Dispose();
+			
+			using(Stream input = folder.CreateFile(filename, FileAccessMode.Read, CreationOptions.OpenIfExists))
+				input.CopyTo(response.Content);
 		}
 	}
 }
